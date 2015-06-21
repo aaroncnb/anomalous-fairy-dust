@@ -66,9 +66,22 @@ glat = AME.field03[cerberus]
 ;; Adding IRC bands will need IRC HEALPIX files, 
 ;;;;;;;or some parallel process which gets the data via the "ircscan" bash script by Ohsawa-san
 
-;bands = ["akari9","iras12","akari18","iras25","iras60","akari65","akari90","iras100","akari140","akari160","planck857","planck545"]
 
-bands =["iras12","iras25","iras60","akari65","akari90","iras100","akari140","akari160","planck857","planck545"]
+
+;IRC_present = FILE_TEST("../Data/"+ROI+"/im_akari9.fits")
+;REMOVE, WHERE(has_band EQ 0), bands
+;IF IRC_present EQ 1 THEN BEGIN 
+bands = ["akari9","iras12","akari18","iras25","iras60","akari65","akari90","iras100","akari140","akari160","planck857","planck545"]
+;ENDIF ELSE BEGIN
+;bands =["iras12","iras25","iras60","akari65","akari90","iras100","akari140","akari160","planck857","planck545"]
+;ENDELSE
+
+;;bands = ["akari9", "akari18", "akari65", "akari90","akari140","akari160","planck857","planck545"]
+;;bands = ["akari65","akari90","akari140","akari160","planck857","planck545"]
+;;bands =["iras12","iras25","iras60","akari65","akari90","iras100","akari140","akari160","planck857","planck545"]
+;;bands =["irac1","irac2","irac3","irac4","akari9","iras12","akari18","mips1","iras25","iras60","akari65","mips2",$
+;;"akari90","iras100","akari140","mips4","akari160","spire250","planck857","planck545"]
+
 
 Nband = N_ELEMENTS(bands)
 
@@ -169,12 +182,15 @@ rms = img*0.1D
   ;; I think "SKY" is too crude, so I will instead use "BACKSUB" from the Buie library...
   ;;.... It fits a linear or polynomial background to each column or each row of the image, then subtracts it
   ;; The default method is to subtract a mean.
+    ;;backsub, image, [/ROW,/COLUMN]
 
+
+  ;;Make a stacked FITS file for later inspection
+;mwrfits, img_SED[*,*,i], '../Figures/step1_SED_AkPlIr.fits', hdr
+
+;backsub, img, /ROW, order=1
+;;
 ;backsub,img
-
-
-
-writefits, ROI+bands[i]+'.fits',img, hdr
 
    ;;This one can fit a plane or 2-d polynomial to the whole image...which is best?
    ;; I think that if the zody is the dominant background, a plane is best.
