@@ -14,36 +14,23 @@
      ;; I would like to modify this step so that the coordinates are extracted from the ROI name, 
      ;; and I want the ROI to be given as a parameter when the "step1..." procedure is called.
      ;; I would also like to implement a step7, which will procedurally generate a thesis
+;;;Let's import the healpix and numpy packages needed for this analysis...
 
+import healpy as hp
+import numpy as np
 
-;;;;;;;;0.2) Read in the HEALPix Maps Before starting the LOOP OF ALL REGIONS
-       print "Reading HEALPix Maps"
+;;;;;;;;0.2) Read in the HEALPix Maps Before starting the LOOP OF ALL REGION
+print "Reading HEALPix Maps"
        map12 = hp.read_map("../Data/im_iras12.fits")
-       map25 = 
-       read_fits_map,"../Data/im_iras12.fits", map12, head, xhead, COORDSYS=coordsys, ORDERING=ordering, NSIDE=nside
-       print, coordsys, ordering, nside
-       read_fits_map,"../Data/im_iras25.fits", map25, head, xhead, COORDSYS=coordsys, ORDERING=ordering, NSIDE=nside
-       print, coordsys, ordering, nside
-       read_fits_map,"../Data/im_iras60.fits", map60, head, xhead, COORDSYS=coordsys, ORDERING=ordering, NSIDE=nside
-       print, coordsys, ordering, nside
-       read_fits_map,"../Data/healpix10/im_akari65.fits", map65, head, xhead, COORDSYS=coordsys, ORDERING=ordering, NSIDE=nside
-       print, coordsys, ordering, nside
-       read_fits_map,"../Data/healpix10/im_akari90.fits", map90, head, xhead, COORDSYS=coordsys, ORDERING=ordering, NSIDE=nside
-       print, coordsys, ordering, nside
-       read_fits_map,"../Data/im_iras100.fits", map100, head, xhead, COORDSYS=coordsys, ORDERING=ordering, NSIDE=nside
-       print, coordsys, ordering, nside
-       read_fits_map,"../Data/healpix10/im_akari140.fits", map140, head, xhead, COORDSYS=coordsys, ORDERING=ordering, NSIDE=nside
-       print, coordsys, ordering, nside
-       read_fits_map,"../Data/healpix10/im_akari160.fits", map160, head, xhead,COORDSYS=coordsys, ORDERING=ordering, NSIDE=nside
-       print, coordsys, ordering, nside
-       read_fits_map,"../Data/im_planck857.fits", map857, head, xhead,COORDSYS=coordsys, ORDERING=ordering, NSIDE=nside
-       print, coordsys, ordering, nside
-       read_fits_map,"../Data/im_planck545.fits", map545, head, xhead,COORDSYS=coordsys, ORDERING=ordering, NSIDE=nside
-       print, coordsys, ordering, nside
-hparrays = {map12:map12,map25:map25,map60:map60,map65:map65,map90:map90, $
-map100:map100,map140:map140,map160:map160,map857:map857,map545:map545}
-       print, "Finished reading HEALPix Maps"
-
+       map25 = hp.read_map("../Data/im_iras25.fits")
+       map60 = hp.read_map("../Data/im_iras60.fits")
+       map100 = hp.read_map("../Data/healpix10/im_akari65.fits")
+       map90= hp.read_map("../Data/healpix10/im_akari90.fits")
+       map140= hp.read_map("../Data/healpix10/im_akari140.fits")
+       map160= ("../Data/healpix10/im_akari160.fits")
+       map857= hp.read_map("../Data/im_planck857.fits")
+       map545= hp.read_map("../Data/im_planck545.fits")
+       print "Finished reading HEALPix Maps"
 
 AME = READ_CSV('../Data/AME.txt', COUNT = amy, HEADER = amyhead, MISSING_VALUE='')
 NROIs = N_ELEMENTS(AME.field01)
