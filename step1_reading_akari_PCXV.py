@@ -54,10 +54,10 @@ glat = AME.field03[cerberus]
 ## Currently testing with only the FIS and HFI bands- all of the ones available as HEAPIX.
 ## Adding IRC bands will need IRC HEALPIX files, 
 #######or some parallel process which gets the data via the "ircscan" bash script by Ohsawa-san
-
+#Remov
 #bands = ["akari9","iras12","akari18","iras25","iras60","akari65","akari90","iras100","akari140","akari160","planck857","planck545"]
 
-bands =["iras12","iras25","iras60","akari65","akari90","iras100","akari140","akari160","planck857","planck545"]
+
 
 Nband = N_ELEMENTS(bands)
 
