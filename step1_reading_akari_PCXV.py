@@ -52,7 +52,9 @@ Nband = len(bands)
 for i in range (0, Nband-1)
 
   ## 1) Extract rectangular cutouts from the HEALPix arrays (loaded above) using gnomdrizz
-
+   ## As far as smoothing goes, we can apply a smoothing to the whole map from the start using the following function:
+    ##    wmap_map_I_smoothed = hp.smoothing(wmap_map_I, fwhm=60, arcmin=True)
+   ## It will take a long time but we should only have to do it once, assuming the smoothing criteria doesn't change a whole lot
 
     CASE bands[i] OF
        'akari9':BEGIN
@@ -124,22 +126,14 @@ ENDCASE
 rms = img*0.1D
 #rms_total = 
 
-  ## 1.1) Background Subtraction: Let's try to do a background subtraction inside of this step.
-  ## I think "SKY" is too crude, so I will instead use "BACKSUB" from the Buie library...
-  ##.... It fits a linear or polynomial background to each column or each row of the image, then subtracts it
-  ## The default method is to subtract a mean.
+  ## 1.1) Background Subtraction: 
 
 #backsub,img
-
-
+#skyfit,img,skyimg,YORDER=0,XORDER=0, NDEG=1
+#img = img-skyim
 
 writefits, ROI+bands[i]+'.fits',img, hdr
 
-   ##This one can fit a plane or 2-d polynomial to the whole image...which is best?
-   ## I think that if the zody is the dominant background, a plane is best.
-   ##    Continnues to have some issue with the "LOWESS" routine
-   #skyfit,img,skyimg,YORDER=0,XORDER=0, NDEG=1
-   #img = img-skyimg
 
 
   ## Size of the image
