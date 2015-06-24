@@ -27,62 +27,32 @@ print "Reading HEALPix Maps"
        map100 = hp.read_map("../Data/healpix10/im_akari65.fits")
        map90= hp.read_map("../Data/healpix10/im_akari90.fits")
        map140= hp.read_map("../Data/healpix10/im_akari140.fits")
-       map160= ("../Data/healpix10/im_akari160.fits")
+       map160= hp.read_map("../Data/healpix10/im_akari160.fits")
        map857= hp.read_map("../Data/im_planck857.fits")
        map545= hp.read_map("../Data/im_planck545.fits")
        print "Finished reading HEALPix Maps"
+       
+AME = np.genfromtxt('../Data/AME.txt', delimiter =',')
+NROIs = len(AME[:,1])
 
-AME = READ_CSV('../Data/AME.txt', COUNT = amy, HEADER = amyhead, MISSING_VALUE='')
-NROIs = N_ELEMENTS(AME.field01)
-FOR cerberus=0,NROIs-1 DO BEGIN
 
-ROI  = AME.field01[cerberus]
+for cerberus in range(0,NROIs-1) 
+
+ROI = AME[cerberus,1]
 
 ##There seems to be a problem with converting the ROI name into GLON and GLAT. It's writes them into the header as a string...
 ##Somehow GNOMDRIZZ can interpret the string, but later on HASTROM (in step3) cannot
 #glon = STRMID(ROI, 1,6)
 #glat = STRMID(ROI,7)
-glon = AME.field02[cerberus]
-glat = AME.field03[cerberus]
+glon = AME[cerberus,2]
+glat = AME[cerberus,3]
 
+Nband = len(bands)
 
+for i in range (0, Nband-1)
 
-## List of the broadbands to be used (Just throwing in the AKARI bands here)
-##----------------------------------
-## This array contains the string label of each of the waveband we
-## want to  analyze.
-## Currently testing with only the FIS and HFI bands- all of the ones available as HEAPIX.
-## Adding IRC bands will need IRC HEALPIX files, 
-#######or some parallel process which gets the data via the "ircscan" bash script by Ohsawa-san
-#Remov
-#bands = ["akari9","iras12","akari18","iras25","iras60","akari65","akari90","iras100","akari140","akari160","planck857","planck545"]
+  ## 1) Extract rectangular cutouts from the HEALPix arrays (loaded above) using gnomdrizz
 
-
-
-Nband = N_ELEMENTS(bands)
-
-FOR i=0,Nband-1 DO BEGIN
-
-
-  ## 1) Read the FITS file 
-  ## Now that HEALPIX FITS files are available for FIS as well as HFI data, I will modify this step to extract cutouts from HPY maps
-  ##----------------------
-#  PRINT, "Reading the map "+bands[i]+"..."+ROI+"..."+glon+"..."+glat
-
-
-#order 13 pixel spacing in degrees is 0.0071625
-#0.42975 in arcminutes...
-#     reso = 0.42975 ELSE (Order 13pr)
-###ORDER 13 is too pixely, and IDL chokes on it :( compromising for now with ORDER 12
-#order 12 pixel spacing is 0.014325 degrees
-#
-reso1 = 1.7
-#reso2 = 0.8595
-size_arcmin = 240
-smoothing_size_arcmin = 60
-## Read-in each band's data using the appropriate routine for each (i.e. gnomdrizz for HEALPix, simple READFITS for non HEALPix)
-## The procedure READ_FITS_MAP is part of the HEALPiX IDL library.
-## GNOMDRIZZ is from the DRIZZLIB package (And is a very silly-sounding routine name)
 
     CASE bands[i] OF
        'akari9':BEGIN
