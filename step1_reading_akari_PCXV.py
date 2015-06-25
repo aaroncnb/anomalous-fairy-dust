@@ -32,24 +32,36 @@ print "Reading HEALPix Maps"
        map545= hp.read_map("../Data/im_planck545.fits")
        print "Finished reading HEALPix Maps"
        
-AME = np.genfromtxt('../Data/AME.txt', delimiter =',')
+
+## Read in the file containing all of the data about the Planck XV 2013 AME regions.
+  AME = np.genfromtxt('../Data/AME.txt', delimiter =',')
+
+
+## 1.1 Circular Aperture Photemotery on the HEALPix Maps (with an annulus for background subtraction):
+ #### First things first, we need to import the aperture photometry package
+     from photutils import CircularAperture as ca
+glon  = AME[:,2]
+glat  = AME[:,3]
 NROIs = len(AME[:,1])
+positions = [(glon,glat)]
+apertures = CircularAperture(positions, r=3.)
+
+
 
 
 for cerberus in range(0,NROIs-1) 
 
-ROI = AME[cerberus,1]
+#ROI = AME[cerberus,1]
 
 ##There seems to be a problem with converting the ROI name into GLON and GLAT. It's writes them into the header as a string...
 ##Somehow GNOMDRIZZ can interpret the string, but later on HASTROM (in step3) cannot
 #glon = STRMID(ROI, 1,6)
 #glat = STRMID(ROI,7)
-glon = AME[cerberus,2]
-glat = AME[cerberus,3]
+
 
 Nband = len(bands)
 
-for i in range (0, Nband-1)
+#for i in range (0, Nband-1)
 
   ## 1) Extract rectangular cutouts from the HEALPix arrays (loaded above) using gnomdrizz
    ## As far as smoothing goes, we can apply a smoothing to the whole map from the start using the following function:
@@ -126,13 +138,16 @@ ENDCASE
 rms = img*0.1D
 #rms_total = 
 
-  ## 1.1) Background Subtraction: 
+ 
+ 
+ 
+  ## 1.2) Background Subtraction: 
 
 #backsub,img
 #skyfit,img,skyimg,YORDER=0,XORDER=0, NDEG=1
 #img = img-skyim
 
-writefits, ROI+bands[i]+'.fits',img, hdr
+#writefits, ROI+bands[i]+'.fits',img, hdr
 
 
 
