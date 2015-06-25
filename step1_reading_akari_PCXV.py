@@ -14,6 +14,11 @@
      ## I would like to modify this step so that the coordinates are extracted from the ROI name, 
      ## and I want the ROI to be given as a parameter when the "step1..." procedure is called.
      ## I would also like to implement a step7, which will procedurally generate a thesis
+     
+from photutils import SkyCircularAperture as sca
+from astropy import units as u
+from astropy.coordinates import SkyCoord
+
 ###Let's import the healpix and numpy packages needed for this analysis...
 
 import healpy as hp
@@ -39,15 +44,14 @@ print "Reading HEALPix Maps"
 
 ## 1.1 Circular Aperture Photemotery on the HEALPix Maps (with an annulus for background subtraction):
  #### First things first, we need to import the aperture photometry package
-     from photutils import CircularAperture as ca
+
 glon  = AME[:,2]
 glat  = AME[:,3]
 NROIs = len(AME[:,1])
-positions = [(glon,glat)]
-apertures = CircularAperture(positions, r=3.)
 
-
-
+positions = SkyCoord(l=glon * u.deg, b=glat * u.deg,
+                     frame='galactic')
+apertures = SkyCircularAperture(positions, r=apSize. * u.arcsec)
 
 for cerberus in range(0,NROIs-1) 
 
