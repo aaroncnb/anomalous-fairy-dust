@@ -12,3 +12,13 @@ size_arcmin = 240
 
 # Set the smoothing width (in pixels) for the Guassian PSF Smoothing
 smoothing_size_arcmin = 60
+
+# Set the source aperture radius to be used in the case of circular aperture photometry
+
+apSize = 120 / reso1
+
+# Set the inner and outer radii of the annulus to be used for the background subtraction
+
+bgSizeInner = 80/reso1
+bgSizeOuter = 100/reso1
+
