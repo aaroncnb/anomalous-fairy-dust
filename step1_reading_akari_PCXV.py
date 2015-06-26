@@ -49,6 +49,7 @@ print "Reading HEALPix Maps"
 glon  = AME[:,2]
 glat  = AME[:,3]
 NROIs = len(AME[:,1])
+Nband = len(bands)
 
 positions = SkyCoord(l=glon * u.deg, b=glat * u.deg,
                      frame='galactic')
@@ -56,8 +57,14 @@ apertures = SkyCircularAperture(positions, r=apSize. * u.arcsec)
 
 annulus_apertures = SkyCircularAnnulus(positions, r_in=bgSizeInner, r_out=bgSizeOuter)
 
-rawflux_table =ap(data, apertures)
-bkgflux_table = ap(data, annulus_apertures)
+
+##Here's where the photometry actually happenss, so we'll start the for loop over all the wavebands
+for i in range(0, Nbands)
+
+data = hmaps[i]
+rawflux_table =ap(data, apertures, method ="exact")
+bkgflux_table = ap(data, annulus_apertures, method ="exact")
+
 phot_table = hstack([rawflux_table, bkgflux_table], table_names=['raw', 'bkg'])
 bkg_mean = phot_table['aperture_sum_bkg'] / annulus_apertures.area()
 bkg_sum = bkg_mean * apertures.area()
@@ -66,9 +73,6 @@ phot_table['residual_aperture_sum'] = final_sum
 print(phot_table['residual_aperture_sum'])
 
 
-data = map
-phot_table = ap(data, apertures, method ="exact")
-print(phot_table)
 
 
 ##IDL Example Code for estimating error based on the background annulus, from Clive Dickinson's (2010) IDL Code
@@ -97,19 +101,6 @@ print(phot_table)
         ENDIF
 
 
-for cerberus in range(0,NROIs-1) 
-
-#ROI = AME[cerberus,1]
-
-##There seems to be a problem with converting the ROI name into GLON and GLAT. It's writes them into the header as a string...
-##Somehow GNOMDRIZZ can interpret the string, but later on HASTROM (in step3) cannot
-#glon = STRMID(ROI, 1,6)
-#glat = STRMID(ROI,7)
-
-
-Nband = len(bands)
-
-#for i in range (0, Nband-1)
 
   ## 1) Extract rectangular cutouts from the HEALPix arrays (loaded above) using gnomdrizz
    ## As far as smoothing goes, we can apply a smoothing to the whole map from the start using the following function:
