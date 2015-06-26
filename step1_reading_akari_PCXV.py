@@ -102,92 +102,11 @@ print(phot_table['residual_aperture_sum'])
 
 
 
-  ## 1) Extract rectangular cutouts from the HEALPix arrays (loaded above) using gnomdrizz
-   ## As far as smoothing goes, we can apply a smoothing to the whole map from the start using the following function:
-    ##    wmap_map_I_smoothed = hp.smoothing(wmap_map_I, fwhm=60, arcmin=True)
-   ## It will take a long time but we should only have to do it once, assuming the smoothing criteria doesn't change a whole lot
-
-    CASE bands[i] OF
-       'akari9':BEGIN
-       img = readfits("../Data/akari9/"+ROI+"_"+bands[i]+".fits",hdr)
-       img[where(img[*] eq 0.00000)] = !Values.F_NAN       
-       #img = img*0.31       
-       #backsub, img
-       #img = FILTER_IMAGE(img, FWHM=  120, /ALL_PIXELS)
-    END
-       'akari18':BEGIN
-       img = readfits("../Data/akari18/"+ROI+"_"+bands[i]+".fits",hdr)
-       img[where(img[*] eq 0.00000)] = !Values.F_NAN
-       img = img*0.48
-       #backsub, img
-       #img = FILTER_IMAGE(img, FWHM=  120, /ALL_PIXELS)
-    END
-      'iras12':BEGIN
-       gnomdrizz,hparrays.map12[*,0],rot=[glon,glat],reso_arcmin=reso1,pxsize=ROUND(size_arcmin/reso1),mapfits=img,hfits=hdr, /nested
-    img = FILTER_IMAGE(img, FWHM= 35, /ALL_PIXELS)
-    END
-       'iras25':BEGIN
-       gnomdrizz,hparrays.map25[*,0],rot=[glon,glat],reso_arcmin=reso1,pxsize=ROUND(size_arcmin/reso1),mapfits=img,hfits=hdr, /nested
-    img = FILTER_IMAGE(img, FWHM= 35, /ALL_PIXELS)
-    END
-       'iras60':BEGIN
-       gnomdrizz,hparrays.map60[*,0],rot=[glon,glat],reso_arcmin=reso1,pxsize=ROUND(size_arcmin/reso1),mapfits=img,hfits=hdr, /nested
-    img = FILTER_IMAGE(img, FWHM= 35, /ALL_PIXELS)
-    END
-      'akari65':BEGIN
-       gnomdrizz,hparrays.map65[*,0],rot=[glon,glat],reso_arcmin=reso1,pxsize=ROUND(size_arcmin/reso1),mapfits=img,hfits=hdr, /nested
-    img = FILTER_IMAGE(img, FWHM= 35, /ALL_PIXELS)
-    END
-       'akari90':BEGIN
-        gnomdrizz,hparrays.map90[*,0],rot=[glon,glat],reso_arcmin=reso1,pxsize=ROUND(size_arcmin/reso1),mapfits=img,hfits=hdr, /nested
-    img = FILTER_IMAGE(img, FWHM= 35, /ALL_PIXELS)
-    END
-       'iras100':BEGIN
-       gnomdrizz,hparrays.map100[*,0],rot=[glon,glat],reso_arcmin=reso1,pxsize=ROUND(size_arcmin/reso1),mapfits=img,hfits=hdr, /nested
-    img = FILTER_IMAGE(img, FWHM= 35, /ALL_PIXELS)
-    END
-       'akari140':BEGIN
-       gnomdrizz,hparrays.map140[*,0],rot=[glon,glat],reso_arcmin=reso1,pxsize=ROUND(size_arcmin/reso1),mapfits=img,hfits=hdr, /nested
-    img = FILTER_IMAGE(img, FWHM= 35, /ALL_PIXELS)
-    END
-       'akari160':BEGIN
-       gnomdrizz,hparrays.map160[*,0],rot=[glon,glat],reso_arcmin=reso1,pxsize=ROUND(size_arcmin/reso1),mapfits=img,hfits=hdr, /nested
-    img = FILTER_IMAGE(img, FWHM= 35, /ALL_PIXELS)
-    END
-       'spire250':BEGIN
-       img = readfits("../Data/"+ROI+"/im_"+bands[i]+".fits",hdr)
-    img = FILTER_IMAGE(img, FWHM= 35, /ALL_PIXELS)
-    END
-       'planck857':BEGIN
-       gnomdrizz,hparrays.map857[*,0],rot=[glon,glat],reso_arcmin=reso1,pxsize=ROUND(size_arcmin/reso1),mapfits=img,hfits=hdr, /nested
-    img = FILTER_IMAGE(img, FWHM= 35, /ALL_PIXELS)
-    END
-       'planck545':BEGIN
-       gnomdrizz,hparrays.map545[*,0],rot=[glon,glat],reso_arcmin=reso1,pxsize=ROUND(size_arcmin/reso1),mapfits=img,hfits=hdr, /nested
-    img = FILTER_IMAGE(img, FWHM= 35, /ALL_PIXELS)
-    END
-
-ENDCASE
-
-
-
-  ##  - Extension 1: RMS in MJy/sr.
-  ## In the case of IRC, just make an array with the same dimension as the image. Then set all values to 10% of the signal
-  
-rms = img*0.1D
-#rms_total = 
+ 
 
  
  
  
-  ## 1.2) Background Subtraction: 
-
-#backsub,img
-#skyfit,img,skyimg,YORDER=0,XORDER=0, NDEG=1
-#img = img-skyim
-
-#writefits, ROI+bands[i]+'.fits',img, hdr
-
 
 
   ## Size of the image
