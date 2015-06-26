@@ -9,11 +9,11 @@
 ##*
 ##*****************************************************************************
 
-     ## 0) Specify the region you want to study (Need this step since we have access to all-sky data)
-     ## Manually specifiying the ROI name and the Galactic coordinates. 
-     ## I would like to modify this step so that the coordinates are extracted from the ROI name, 
-     ## and I want the ROI to be given as a parameter when the "step1..." procedure is called.
-     ## I would also like to implement a step7, which will procedurally generate a thesis
+## 0) Specify the region you want to study (Need this step since we have access to all-sky data)
+## Manually specifiying the ROI name and the Galactic coordinates. 
+## I would like to modify this step so that the coordinates are extracted from the ROI name, 
+## and I want the ROI to be given as a parameter when the "step1..." procedure is called.
+## I would also like to implement a step7, which will procedurally generate a thesis
      
 from photutils import SkyCircularAperture as sca
 from photutils import aperture_photometry as ap
@@ -27,24 +27,24 @@ import numpy as np
 
 ########0.2) Read in the HEALPix Maps Before starting the LOOP OF ALL REGION
 print "Reading HEALPix Maps"
-       map12 = hp.read_map("../Data/im_iras12.fits")
-       map25 = hp.read_map("../Data/im_iras25.fits")
-       map60 = hp.read_map("../Data/im_iras60.fits")
-       map100 = hp.read_map("../Data/healpix10/im_akari65.fits")
-       map90= hp.read_map("../Data/healpix10/im_akari90.fits")
-       map140= hp.read_map("../Data/healpix10/im_akari140.fits")
-       map160= hp.read_map("../Data/healpix10/im_akari160.fits")
-       map857= hp.read_map("../Data/im_planck857.fits")
-       map545= hp.read_map("../Data/im_planck545.fits")
-       print "Finished reading HEALPix Maps"
+map12 = hp.read_map("../Data/im_iras12.fits")
+map25 = hp.read_map("../Data/im_iras25.fits")
+map60 = hp.read_map("../Data/im_iras60.fits")
+map100 = hp.read_map("../Data/healpix10/im_akari65.fits")
+map90 = hp.read_map("../Data/healpix10/im_akari90.fits")
+map140 = hp.read_map("../Data/healpix10/im_akari140.fits")
+map160 = hp.read_map("../Data/healpix10/im_akari160.fits")
+map857 = hp.read_map("../Data/im_planck857.fits")
+map545 = hp.read_map("../Data/im_planck545.fits")
+print "Finished reading HEALPix Maps"
        
 
 ## Read in the file containing all of the data about the Planck XV 2013 AME regions.
-  AME = np.genfromtxt('../Data/AME.txt', delimiter =',')
+AME = np.genfromtxt('../Data/AME.txt', delimiter =',')
 
 
 ## 1.1 Circular Aperture Photemotery on the HEALPix Maps (with an annulus for background subtraction):
- #### First things first, we need to import the aperture photometry package
+#### First things first, we need to import the aperture photometry package
 
 glon  = AME[:,2]
 glat  = AME[:,3]
@@ -76,13 +76,13 @@ print(phot_table['residual_aperture_sum'])
 
 
 ##IDL Example Code for estimating error based on the background annulus, from Clive Dickinson's (2010) IDL Code
-; estimate error based on robust sigma of the background annulus
+# estimate error based on robust sigma of the background annulus
         IF (keyword_set(noise_model)) EQ 0 THEN $
             noise_model = 0 $
         ELSE noise_model = 1
 
-; new version (2-Dec-2010) that has been tested with simulations for
-; Planck early paper and seems to be reasonable for many applications
+# new version (2-Dec-2010) that has been tested with simulations for
+# Planck early paper and seems to be reasonable for many applications
 
         IF (noise_model EQ 0) THEN BEGIN 
             Npoints = (pix_area*ninnerpix) / $
@@ -92,7 +92,7 @@ print(phot_table['residual_aperture_sum'])
             fd_err = stddev(map[outerpix,column]) * factor * ninnerpix / sqrt(Npoints)
         ENDIF
 
-; (works exactly for white uncorrelated noise only!)
+#; (works exactly for white uncorrelated noise only!)
         IF (noise_model EQ 1) THEN BEGIN
             k = !PI/2.
 
