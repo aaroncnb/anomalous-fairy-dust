@@ -16,6 +16,7 @@
      ## I would also like to implement a step7, which will procedurally generate a thesis
      
 from photutils import SkyCircularAperture as sca
+from photutils import aperture_photometry as ap
 from astropy import units as u
 from astropy.coordinates import SkyCoord
 
@@ -52,6 +53,23 @@ NROIs = len(AME[:,1])
 positions = SkyCoord(l=glon * u.deg, b=glat * u.deg,
                      frame='galactic')
 apertures = SkyCircularAperture(positions, r=apSize. * u.arcsec)
+
+annulus_apertures = SkyCircularAnnulus(positions, r_in=bgSizeInner, r_out=bgSizeOuter)
+
+rawflux_table =ap(data, apertures)
+bkgflux_table = ap(data, annulus_apertures)
+phot_table = hstack([rawflux_table, bkgflux_table], table_names=['raw', 'bkg'])
+bkg_mean = phot_table['aperture_sum_bkg'] / annulus_apertures.area()
+bkg_sum = bkg_mean * apertures.area()
+final_sum = phot_table['aperture_sum_raw'] - bkg_sum
+phot_table['residual_aperture_sum'] = final_sum
+print(phot_table['residual_aperture_sum'])
+
+
+data = map
+phot_table = ap(data, apertures, method ="exact")
+print(phot_table)
+
 
 for cerberus in range(0,NROIs-1) 
 
