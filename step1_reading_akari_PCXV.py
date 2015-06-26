@@ -71,6 +71,32 @@ phot_table = ap(data, apertures, method ="exact")
 print(phot_table)
 
 
+##IDL Example Code for estimating error based on the background annulus, from Clive Dickinson's (2010) IDL Code
+; estimate error based on robust sigma of the background annulus
+        IF (keyword_set(noise_model)) EQ 0 THEN $
+            noise_model = 0 $
+        ELSE noise_model = 1
+
+; new version (2-Dec-2010) that has been tested with simulations for
+; Planck early paper and seems to be reasonable for many applications
+
+        IF (noise_model EQ 0) THEN BEGIN 
+            Npoints = (pix_area*ninnerpix) / $
+                      (1.13*(float(res_arcmin)/60. *!PI/180.)^2)
+            Npoints_outer = (pix_area*nouterpix) / $
+                      (1.13*(float(res_arcmin)/60. *!PI/180.)^2)
+            fd_err = stddev(map[outerpix,column]) * factor * ninnerpix / sqrt(Npoints)
+        ENDIF
+
+; (works exactly for white uncorrelated noise only!)
+        IF (noise_model EQ 1) THEN BEGIN
+            k = !PI/2.
+
+            fd_err = factor * sqrt(float(ninnerpix) + $
+                (k * float(ninnerpix)^2/nouterpix)) * robust_sigma(map[outerpix,column])
+        ENDIF
+
+
 for cerberus in range(0,NROIs-1) 
 
 #ROI = AME[cerberus,1]
