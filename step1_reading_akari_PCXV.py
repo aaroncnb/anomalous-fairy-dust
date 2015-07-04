@@ -80,60 +80,10 @@ else:
             k = !PI/2.
 
             fd_err = factor * sqrt(float(ninnerpix) + $
-                (k * float(ninnerpix)^2/nouterpix)) * robust_sigma(map[outerpix,column])
-
-
-  ## Size of the image
-  sizim = SIZE(img)
-  Nx = sizim[1]
-  Ny = sizim[2]
-
-
-  ## 2) Make a mask
-  ##---------------
-  ## Sometimes, pixels are NaN (Not a Number), either because they
-  ## have been masked out during the data processing, or they are simply off
-  ## the field. Here we build a mask for each map. This mask will be 0 if 
-  ## the pixel is OK and 1 otherwise.
-
-  mask = BYTARR(Nx,Ny)
-  whbad = WHERE((img LE 0.D) AND (FINITE(img) EQ 0), Nbad)
-  IF (Nbad GT 0) THEN mask[whbad] = 1
-
-
-  ## 3) Statistics on the data
-  ##--------------------------
-  ## Signal-to-noise keeping only the NaNaNs (Not a NaN).
-    SovN = (ABS(img/rms))[WHERE(mask EQ 0)]
-    PRINT, "  The signal-to-noise ratio for the map is on average " $
-         + STRTRIM(MEAN(SovN),2)+" between "+STRTRIM(MIN(SovN),2)+" and " $
-          + STRTRIM(MAX(SovN),2)+"."
-
-  ## In all these programs, we use the STRTRIM(var,2) formatting
-  ## command, that converts a number to a character string and removes
-  ## the extra spaces before and after.
-
-
-  ## 4) Plotting the image
-  ##----------------------
-  ## Plot the image, with a reduce size.
-
-  maxsize = 500.
-  reduction = maxsize/MAX([Nx,Ny])
-  Nx_plot = ROUND(reduction*Nx)
-  Ny_plot = ROUND(reduction*Ny)
-  WINDOW, i, XSIZE=Nx_plot, YSIZE=Ny_plot, TITLE=bands[i], $
-             XPOS=(i/2 MOD 2)*maxsize, YPOS=((i+1)/2 MOD 2)*maxsize
-  LOADCT, 15
-  TVSCL, CONGRID(img*(1-mask),Nx_plot,Ny_plot)
-
-  #CONTOUR, DIST(31,41), POSITION=[0.15, 0.15, 0.95, 0.75], $
-  #C_COLORS=INDGEN(25)*4, NLEVELS=25
-  
-  ## The IDL CONGRID function interpolates an array on a new
-  ## grid. It has to be handled carefully when performing photometry
-  ## because of possible interpolation errors. However, for display
-  ## purposes, as in this case, it works fine.
+                (k * float(ninnerpix)^2/nouterpix)) * robust_sigma(map[outerpix,column]
+                
+                
+## 4) Plotting a rectangular cut-out around the aperture for display purposes. Let's make it about 3-5 degrees wide:
 
 
   ## 5) Savings
