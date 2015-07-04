@@ -2,6 +2,15 @@
 # Set which photometric bands' data are to be used in the analysis
 bands = ["iras12","iras25","iras60","akari65","akari90","iras100","akari140","akari160","planck857","planck545"]
 # Set which of the bands' data are in HEALPix
+
+###Analysis mode settings
+
+##Settings for the error estimation on the HEALPix data (based on Clive Dickinson's IDL code)
+#This line toggles the noise model on and off 
+noise_model =1 
+
+
+###Numerical Settings
 # Specify the pixel scale of the input data
 
 reso1 = 1.7
