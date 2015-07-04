@@ -1,20 +1,12 @@
 
 ##*****************************************************************************
-##*
-##*          International Young Astronomer School on Exploiting
-##*                   Herschel and Planck Data (2013)
-##*
-##*               STEP1: Reading and visualizing the data
-##*                       (Created by F. Galliano, edited in an exceedingly crude way by A. Bell)
-##*
+##*  An all-sky, multi-wavelength image analysis code. 
+##*Designed for checking the full dust SED accross the mid infrared to far infrared wavelengths 
+##* for comparison to the anomalous microwave emission.
+##* Based on the example photometry IDL code Created by F. Galliano for the Herschel-Planck School 2013
+##*   -Aaron C. Bell (2015)
 ##*****************************************************************************
 
-## 0) Specify the region you want to study (Need this step since we have access to all-sky data)
-## Manually specifiying the ROI name and the Galactic coordinates. 
-## I would like to modify this step so that the coordinates are extracted from the ROI name, 
-## and I want the ROI to be given as a parameter when the "step1..." procedure is called.
-## I would also like to implement a step7, which will procedurally generate a thesis
-     
 from photutils import SkyCircularAperture as sca
 from photutils import aperture_photometry as ap
 from astropy import units as u
@@ -25,7 +17,7 @@ from astropy.coordinates import SkyCoord
 import healpy as hp
 import numpy as np
 
-########0.2) Read in the HEALPix Maps Before starting the LOOP OF ALL REGION
+########0.2) Read in the HEALPix Maps Before starting the LOOP OF ALL REGIONS
 print "Reading HEALPix Maps"
 map12 = hp.read_map("../Data/im_iras12.fits")
 map25 = hp.read_map("../Data/im_iras25.fits")
