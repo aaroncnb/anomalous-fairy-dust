@@ -7,15 +7,17 @@
 ##*   -Aaron C. Bell (2015)
 ##*****************************************************************************
 
+
+#### First things first, we need to import the aperture photometry packages
 from photutils import SkyCircularAperture as sca
 from photutils import aperture_photometry as ap
 from astropy import units as u
 from astropy.coordinates import SkyCoord
 
 ###Let's import the healpix and numpy packages needed for this analysis...
-
 import healpy as hp
 import numpy as np
+
 
 ########0.2) Read in the HEALPix Maps Before starting the LOOP OF ALL REGIONS
 print "Reading HEALPix Maps"
@@ -36,7 +38,6 @@ AME = np.genfromtxt('../Data/AME.txt', delimiter =',')
 
 
 ## 1.1 Circular Aperture Photemotery on the HEALPix Maps (with an annulus for background subtraction):
-#### First things first, we need to import the aperture photometry package
 
 glon  = AME[:,2]
 glat  = AME[:,3]
@@ -45,17 +46,17 @@ Nband = len(bands)
 
 positions = SkyCoord(l=glon * u.deg, b=glat * u.deg,
                      frame='galactic')
-apertures = SkyCircularAperture(positions, r=apSize. * u.arcsec)
+apertures = SkyCircularAperture(positions, r=apSize * u.arcsec)
 
 annulus_apertures = SkyCircularAnnulus(positions, r_in=bgSizeInner, r_out=bgSizeOuter)
 
 
 ##Here's where the photometry actually happenss, so we'll start the for loop over all the wavebands
-for i in range(0, Nbands)
+for i in range(0, Nbands):
 
-data = hmaps[i]
-rawflux_table = ap(data, apertures, method ="exact")
-bkgflux_table = ap(data, annulus_apertures, method ="exact")
+    data = hmaps[i]
+    rawflux_table = ap(data, apertures, method ="exact")
+    bkgflux_table = ap(data, annulus_apertures, method ="exact")
 
 phot_table = hstack([rawflux_table, bkgflux_table], table_names=['raw', 'bkg'])
 bkg_mean = phot_table['aperture_sum_bkg'] / annulus_apertures.area()
@@ -69,22 +70,15 @@ print(phot_table['residual_aperture_sum'])
 
 ##IDL Example Code for estimating error based on the background annulus, from Clive Dickinson's (2010) IDL Code
 # estimate error based on robust sigma of the background annulus
-     if noise_model == 0 :
-
-            Npoints = (pix_area*ninnerpix) / $
-                      (1.13*(float(res_arcmin)/60. *!PI/180.)^2)
-            Npoints_outer = (pix_area*nouterpix) / $
-                      (1.13*(float(res_arcmin)/60. *!PI/180.)^2)
-            fd_err = stddev(map[outerpix,column]) * factor * ninnerpix / sqrt(Npoints)
+if noise_model == 0 :
+    Npoints = (pix_area*ninnerpix) / (1.13*np.float(res_arcmin))/60. *np.PI/180.)^2)
+    Npoints_outer = (pix_area*nouterpix) / (1.13*np.stddev(res_arcmin)/60. * np.PI/180.)^2)
+    fd_err = stddev(map[outerpix,column]) * factor * ninnerpix / np.sqrt(Npoints)
 else:
-            k = !PI/2.
+    k = np.PI/2.
+    fd_err = factor * np.sqrt(np.float(ninnerpix) + (k * np.float(ninnerpix)^2/nouterpix)) * robust_sigma(map[outerpix,column]
 
-            fd_err = factor * sqrt(float(ninnerpix) + $
-                (k * float(ninnerpix)^2/nouterpix)) * robust_sigma(map[outerpix,column]
-                
-                
 ## 4) Plotting a rectangular cut-out around the aperture for display purposes. Let's make it about 3-5 degrees wide:
-
 
   ## 5) Savings
   ##-----------
@@ -93,13 +87,7 @@ else:
   SAVE, FILE=filexdr, Nx, Ny, img, mask, rms, hdr
 #  SAVE, FILE=filexdr, Nx, Ny, img, mask, hdr
   PRINT, " - File "+filexdr+" has been written."
-    ##5b) We need to clear the 'hdr' variable, since GNOMDRIZZ will use it as input header if it's already defined, i.e. by READFITS  
-    ##  Using "UNDEFINE" as suggested by CoyoteIDL, since "DELVAR" deletes at the main level and causes problems for reasons.
-     UNDEFINE,hdr
-      
 
-  PRINT
-ENDFOR
 
 ## 6) Save a general file
 ##-----------------------
