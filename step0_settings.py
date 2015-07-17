@@ -7,7 +7,7 @@ bands = ["iras12","iras25","iras60","akari65","akari90","iras100","akari140","ak
 
 ## HEALPix settings
 ###Choose whether or not to convert the maps to RING by default
-nested = true
+nest = true
 
 
 ##Settings for the error estimation on the HEALPix data (based on Clive Dickinson's IDL code)
