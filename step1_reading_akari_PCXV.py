@@ -25,15 +25,15 @@ import numpy as np
 
 ########0.2) Read in the HEALPix Maps Before starting the LOOP OF ALL REGIONS
 print "Reading HEALPix Maps"
-map12 = hp.read_map("ame256.fits")
-map25 = hp.read_map("../Data/im_iras25.fits")
-map60 = hp.read_map("../Data/im_iras60.fits")
-map100 = hp.read_map("../Data/healpix10/im_akari65.fits")
-map90 = hp.read_map("../Data/healpix10/im_akari90.fits")
-map140 = hp.read_map("../Data/healpix10/im_akari140.fits")
-map160 = hp.read_map("../Data/healpix10/im_akari160.fits")
-map857 = hp.read_map("../Data/im_planck857.fits")
-map545 = hp.read_map("../Data/im_planck545.fits")
+map12 = hp.read_map("ame256.fits", nest = nest)
+map25 = hp.read_map("../Data/im_iras25.fits", nest = nest)
+map60 = hp.read_map("../Data/im_iras60.fits", nest = nest)
+map100 = hp.read_map("../Data/healpix10/im_akari65.fits", nest = nest)
+map90 = hp.read_map("../Data/healpix10/im_akari90.fits", nest = nest)
+map140 = hp.read_map("../Data/healpix10/im_akari140.fits", nest = nest)
+map160 = hp.read_map("../Data/healpix10/im_akari160.fits", nest = nest)
+map857 = hp.read_map("../Data/im_planck857.fits", nest = nest)
+map545 = hp.read_map("../Data/im_planck545.fits", nest = nest)
 print "Finished reading HEALPix Maps"
        
 
