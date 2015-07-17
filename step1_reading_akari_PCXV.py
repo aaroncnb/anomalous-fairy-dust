@@ -67,8 +67,21 @@ for i in range(0, Nbands):
        phot_table['residual_aperture_sum'] = final_sum
        print(phot_table['residual_aperture_sum'])
 
-
-
+#### IDL example code for getting the HEALPix pixel numbers in side of a circular aperture. 
+####I think I need to do it this way rather than using the built-in circular apertere method above.
+## get pixels in aperture
+    phi = lon*!pi/180.
+    theta = !pi/2.-lat*!pi/180.
+    ang2vec, theta, phi, vec0
+    IF (ordering EQ 'NESTED') THEN BEGIN
+        query_disc, nside, vec0, aper_inner_radius/60., innerpix, ninnerpix, /deg, /nest
+        query_disc, nside, vec0, aper_outer_radius1/60., outerpix1, nouterpix1, /deg, /nest 
+        query_disc, nside, vec0, aper_outer_radius2/60., outerpix2, nouterpix2, /deg, /nest 
+    ENDIF ELSE BEGIN
+        query_disc, nside, vec0, aper_inner_radius/60., innerpix, ninnerpix, /deg
+        query_disc, nside, vec0, aper_outer_radius1/60., outerpix1, nouterpix1, /deg 
+        query_disc, nside, vec0, aper_outer_radius2/60., outerpix2, nouterpix2, /deg 
+    ENDELSE
 
 ##IDL Example Code for estimating error based on the background annulus, from Clive Dickinson's (2010) IDL Code
 # estimate error based on robust sigma of the background annulus
