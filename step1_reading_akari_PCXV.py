@@ -51,6 +51,24 @@ apertures = SkyCircularAperture(positions, r=apSize * units.arcsec)
 annulus_apertures = SkyCircularAnnulus(positions, r_in=bgSizeInner, r_out=bgSizeOuter)
 
 
+
+#### IDL example code for getting the HEALPix pixel numbers in side of a circular aperture. 
+####I think I need to do it this way rather than using the built-in circular apertere method above.
+## get pixels in aperture
+    phi = lon*!pi/180.
+    theta = !pi/2.-lat*np.PIpi/180.
+    ang2vec(theta, phi, vec0)
+    
+#healpy.query_disc(num_sides, vec, radius_angle, nested_scheme, deg=False)
+
+hp.query_disc(nside, vec0, aper_inner_radius/60., True, deg=True) 
+hp.query_disc(nside, vec0, aper_outer_radius1/60., True, deg=True) 
+hp.query_disc(nside, vec0, aper_outer_radius2/60., True, deg=True)
+
+
+
+
+
 ##Here's where the photometry actually happenss, so we'll start the for loop over all the wavebands
 for i in range(0, Nbands):
        data = hmaps[i]
