@@ -19,21 +19,17 @@ from photutils import aperture_photometry as ap
 import healpy as hp
 import numpy as np
 
-
-
-
-
 ########0.2) Read in the HEALPix Maps Before starting the LOOP OF ALL REGIONS
 print "Reading HEALPix Maps"
-map12 = hp.read_map("ame256.fits", nest = nest)
-map25 = hp.read_map("../Data/im_iras25.fits", nest = nest)
-map60 = hp.read_map("../Data/im_iras60.fits", nest = nest)
-map100 = hp.read_map("../Data/healpix10/im_akari65.fits", nest = nest)
-map90 = hp.read_map("../Data/healpix10/im_akari90.fits", nest = nest)
-map140 = hp.read_map("../Data/healpix10/im_akari140.fits", nest = nest)
-map160 = hp.read_map("../Data/healpix10/im_akari160.fits", nest = nest)
-map857 = hp.read_map("../Data/im_planck857.fits", nest = nest)
-map545 = hp.read_map("../Data/im_planck545.fits", nest = nest)
+map12 = hp.read_map("ame256.fits", nest = True)
+map25 = hp.read_map("../Data/im_iras25.fits", nest = True)
+map60 = hp.read_map("../Data/im_iras60.fits", nest = True)
+map100 = hp.read_map("../Data/healpix10/im_akari65.fits", nest = True)
+map90 = hp.read_map("../Data/healpix10/im_akari90.fits", nest = True)
+map140 = hp.read_map("../Data/healpix10/im_akari140.fits", nest = True)
+map160 = hp.read_map("../Data/healpix10/im_akari160.fits", nest = True)
+map857 = hp.read_map("../Data/im_planck857.fits", nest = True)
+map545 = hp.read_map("../Data/im_planck545.fits", nest = True)
 print "Finished reading HEALPix Maps"
        
 
@@ -43,8 +39,8 @@ AME = np.genfromtxt('../Data/AME.txt', delimiter =',')
 
 ## 1.1 Circular Aperture Photemotery on the HEALPix Maps (with an annulus for background subtraction):
 
-glon  = AME[:,2]
-glat  = AME[:,3]
+glon  = AME[:,1]
+glat  = AME[:,2]
 NROIs = len(AME[:,1])
 Nband = len(bands)
 
@@ -67,21 +63,8 @@ for i in range(0, Nbands):
        phot_table['residual_aperture_sum'] = final_sum
        print(phot_table['residual_aperture_sum'])
 
-#### IDL example code for getting the HEALPix pixel numbers in side of a circular aperture. 
-####I think I need to do it this way rather than using the built-in circular apertere method above.
-## get pixels in aperture
-    phi = lon*!pi/180.
-    theta = !pi/2.-lat*!pi/180.
-    ang2vec, theta, phi, vec0
-    IF (ordering EQ 'NESTED') THEN BEGIN
-        query_disc, nside, vec0, aper_inner_radius/60., innerpix, ninnerpix, /deg, /nest
-        query_disc, nside, vec0, aper_outer_radius1/60., outerpix1, nouterpix1, /deg, /nest 
-        query_disc, nside, vec0, aper_outer_radius2/60., outerpix2, nouterpix2, /deg, /nest 
-    ENDIF ELSE BEGIN
-        query_disc, nside, vec0, aper_inner_radius/60., innerpix, ninnerpix, /deg
-        query_disc, nside, vec0, aper_outer_radius1/60., outerpix1, nouterpix1, /deg 
-        query_disc, nside, vec0, aper_outer_radius2/60., outerpix2, nouterpix2, /deg 
-    ENDELSE
+
+
 
 ##IDL Example Code for estimating error based on the background annulus, from Clive Dickinson's (2010) IDL Code
 # estimate error based on robust sigma of the background annulus
