@@ -5,6 +5,11 @@ bands = ["iras12","iras25","iras60","akari65","akari90","iras100","akari140","ak
 
 ###Analysis mode settings
 
+## HEALPix settings
+###Choose whether or not to convert the maps to RING by default
+nested = true
+
+
 ##Settings for the error estimation on the HEALPix data (based on Clive Dickinson's IDL code)
 #This line toggles the noise model on and off 
 noise_model =1 
