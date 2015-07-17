@@ -13,15 +13,15 @@ from astropy import units
 from astropy.coordinates import SkyCoord
 
 #### First things first, we need to import the aperture photometry packages
-from photutils import SkyCircularAperture as sca
-from photutils import aperture_photometry as ap
+from photutils import SkyCircularAperture
+from photutils import aperture_photometry
 
 import healpy as hp
 import numpy as np
 
 ########0.2) Read in the HEALPix Maps Before starting the LOOP OF ALL REGIONS
 print "Reading HEALPix Maps"
-map12 = hp.read_map("ame256.fits", nest = True)
+map12 = hp.read_map("../Data/im_iras12.fits", nest = True)
 map25 = hp.read_map("../Data/im_iras25.fits", nest = True)
 map60 = hp.read_map("../Data/im_iras60.fits", nest = True)
 map100 = hp.read_map("../Data/healpix10/im_akari65.fits", nest = True)
@@ -46,17 +46,17 @@ Nband = len(bands)
 
 positions = SkyCoord(l=glon * units.deg, b=glat * units.deg,
                      frame='galactic')
-apertures = SkyCircularAperture(positions, r=apSize * units.arcsec)
+apertures = SkyCircularAperture(positions, r=apSize * units.arcmin)
 
-annulus_apertures = SkyCircularAnnulus(positions, r_in=bgSizeInner, r_out=bgSizeOuter)
+annulus_apertures = SkyCircularAnnulus(positions, r_in=bgSizeInner * units.arcmin, r_out=bgSizeOuter * units.arcmin)
 
 
 
 #### IDL example code for getting the HEALPix pixel numbers in side of a circular aperture. 
 ####I think I need to do it this way rather than using the built-in circular apertere method above.
 ## get pixels in aperture
-    phi = lon*!pi/180.
-    theta = !pi/2.-lat*np.PIpi/180.
+    phi = lon * np.PI/180.
+    theta = !pi/2.-lat*np.PI/180.
     ang2vec(theta, phi, vec0)
     
 #healpy.query_disc(num_sides, vec, radius_angle, nested_scheme, deg=False)
@@ -64,6 +64,8 @@ annulus_apertures = SkyCircularAnnulus(positions, r_in=bgSizeInner, r_out=bgSize
 hp.query_disc(nside, vec0, aper_inner_radius/60., True, deg=True) 
 hp.query_disc(nside, vec0, aper_outer_radius1/60., True, deg=True) 
 hp.query_disc(nside, vec0, aper_outer_radius2/60., True, deg=True)
+
+
 
 
 
