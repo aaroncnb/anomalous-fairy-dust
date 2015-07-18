@@ -55,15 +55,22 @@ annulus_apertures = SkyCircularAnnulus(positions, r_in=bgSizeInner * units.arcmi
 #### IDL example code for getting the HEALPix pixel numbers in side of a circular aperture. 
 ####I think I need to do it this way rather than using the built-in circular apertere method above.
 ## get pixels in aperture
-    phi = lon * np.PI/180.
-    theta = !pi/2.-lat*np.PI/180.
-    ang2vec(theta, phi, vec0)
-    
+#First step in doing this is to get our coordinates into a format that "ang2vec" can understand.
+
+phi = glon * np.pi / 180.
+theta = np.pi / 2.- glat * np.pi / 180.
+
+#ang2vec converts a spherical angle to a position vector, but it needs phi and theta as co-lat and co-lon
+
+vec0 = hp.ang2vec(theta, phi)    
+
+#query_disc was recently translated into python from the IDL Healpix package. It isn't mentioned in the Healpy documentation, but it does exist.
+#It takes phi and theta, as colatitude
 #healpy.query_disc(num_sides, vec, radius_angle, nested_scheme, deg=False)
 
-hp.query_disc(nside, vec0, aper_inner_radius/60., True, deg=True) 
-hp.query_disc(nside, vec0, aper_outer_radius1/60., True, deg=True) 
-hp.query_disc(nside, vec0, aper_outer_radius2/60., True, deg=True)
+listpix_r1 = hp.query_disc(nside, vec0, aper_inner_radius/60., True, deg=True) 
+listpix_r2 = hp.query_disc(nside, vec0, aper_outer_radius1/60., True, deg=True) 
+listpix_r3 = hp.query_disc(nside, vec0, aper_outer_radius2/60., True, deg=True)
 
 
 
