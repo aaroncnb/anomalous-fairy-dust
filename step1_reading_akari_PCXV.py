@@ -81,6 +81,18 @@ for i in range(0,98):
     listpix_r1.append(hp.query_disc(nside, vec0[i], aper_inner_radius/60., True, True))
     listpix_r2.append(hp.query_disc(nside, vec0[i], aper_outer_radius1/60., True, True))
     listpix_r3.append(hp.query_disc(nside, vec0[i], aper_outer_radius2/60., True, True))
+    
+    
+#find pixels in the annulus (between outerradius1 and outeradius2) 
+    outerpix_all = [outerpix1,outerpix2]
+    outerpix_all = outerpix_all[sort(outerpix_all)]
+    outerpix = -1L
+    FOR i=0L, nouterpix2-1 DO BEGIN
+        temp = where(outerpix1 EQ outerpix2[i])
+        IF (temp[0] LT 0) THEN outerpix = [outerpix,outerpix2[i]]
+    ENDFOR
+    outerpix = outerpix[1:*]
+    nouterpix = n_elements(outerpix)
 
 ##Here's where the photometry actually happenss, so we'll start the for loop over all the wavebands
 for i in range(0, Nbands):
