@@ -92,7 +92,7 @@ for i in range(0,98):
         if (temp[0] < 0):
                outerpix = [outerpix,outerpix2[i]]
     outerpix = outerpix[1:*]
-    nouterpix = n_elements(outerpix)
+    nouterpix = len(outerpix)
 
 ##Here's where the photometry actually happenss, so we'll start the for loop over all the wavebands
 for i in range(0, Nbands):
