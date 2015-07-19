@@ -84,13 +84,13 @@ for i in range(0,98):
     
     
 #find pixels in the annulus (between outerradius1 and outeradius2) 
-    outerpix_all = [outerpix1,outerpix2]
-    outerpix_all = outerpix_all[sort(outerpix_all)]
-    outerpix = -1L
-    FOR i=0L, nouterpix2-1 DO BEGIN
-        temp = where(outerpix1 EQ outerpix2[i])
-        IF (temp[0] LT 0) THEN outerpix = [outerpix,outerpix2[i]]
-    ENDFOR
+    outerpix_all = [listpix_r2,listpix_r3]
+    outerpix_all.sort()
+#    outerpix = -1L
+    for i in range(0, nouterpix2-1):
+        temp = np.where(listpix_r2 = listpix_r3[i])
+        if (temp[0] < 0):
+               outerpix = [outerpix,outerpix2[i]]
     outerpix = outerpix[1:*]
     nouterpix = n_elements(outerpix)
 
