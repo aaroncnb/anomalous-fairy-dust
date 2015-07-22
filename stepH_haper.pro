@@ -7,5 +7,5 @@ galactic
 rinner = 1.20
 router = 2.0
 
-
-
+multiepoch_photometry, inputlist, maplist=maplist, radius=radius, galactic=galactic, decimal=decimal, rinner=rinner, router=router
+END
