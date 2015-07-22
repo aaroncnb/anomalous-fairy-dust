@@ -42,9 +42,9 @@ pro multiepoch_photometry, inputlist, maplist=maplist, radius=radius, galactic=g
 ; 11-Feb-2013  P. McGehee     Change of input arguments.
 ; 20-Sep-2012  P. McGehee     Ingested into IPAC SVN, formatting changes
 ;------------------------------------------------------------
-    freqlist = ['30','44','70','100','143','217','353','545','857']
-    freqval = [28.405889,44.072241,70.421396,100,143,217,353,545,857.]
-    fwhmlist = [33.1587,28.0852,13.0812,9.88,7.18,4.87,4.65,4.72,4.39] ; fwhm in arcminutes
+    freqlist = ['30','44','70','100','143','217','353','545','857','4612']
+    freqval = [28.405889,44.072241,70.421396,100,143,217,353,545,857.,4612.19.]
+    fwhmlist = [33.1587,28.0852,13.0812,9.88,7.18,4.87,4.65,4.72,4.39,0.5] ; fwhm in arcminutes
 
     if (not keyword_set(rinner)) then rinner = 2.0
     if (not keyword_set(router)) then router = 3.0
