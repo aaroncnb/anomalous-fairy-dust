@@ -21,6 +21,6 @@ for i in range(0,len(bands)):
     hdulist.writeto('freq_'+filenames[i])
     #Now we "close" the HDU, so python knows we're done with it, and it can be cleared from memory.
     hdulist.close()
-
+#####Tested 7/23/2015######
 
 
