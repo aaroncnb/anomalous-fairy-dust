@@ -18,10 +18,9 @@ for i in range(0,len(bands)):
     #...But the AKARI and IRAS data don't have this keyword...so we have to give it one. 2998 GHz is 100 microns.
     prihdr.set('FREQ', frequencies[i])
     #Finally we can write the amended FITS file (well, the header was amended. We didn't actually touch the data!)
-    hdulist.writeto('freq_'filenames)
+    hdulist.writeto('freq_'+filenames[i])
     #Now we "close" the HDU, so python knows we're done with it, and it can be cleared from memory.
     hdulist.close()
-    else if 
 
 
 
