@@ -12,6 +12,7 @@ pro multiepoch_photometry, inputlist, maplist=maplist, radius=radius, galactic=g
 ;
 ;
 ; INPUTS
+; inputlist - CSV (or other tabular format) file containing the list of target sources along wiht coordinates (can be RA and DEC or GLON GLAT)
 ; maplist - file containing names of input HEALPix maps
 ;     freq [GHz] is taken from the FREQ header keyword in the extension
 ;     units string is taken from the TUNIT1 header keyword in the
