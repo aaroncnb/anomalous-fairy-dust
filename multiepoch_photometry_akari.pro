@@ -1,4 +1,4 @@
-pro multiepoch_photometry, inputlist, maplist=maplist, radius=radius, galactic=galactic, decimal=decimal, rinner=rinner, router=router
+pro multiepoch_photometry_akari, inputlist, maplist=maplist, radius=radius, galactic=galactic, decimal=decimal, rinner=rinner, router=router
 
 ; By default this code takes as input a list of source coordinates 
 ; which are stored in inputlist with the following form:
@@ -44,7 +44,7 @@ pro multiepoch_photometry, inputlist, maplist=maplist, radius=radius, galactic=g
 ; 20-Sep-2012  P. McGehee     Ingested into IPAC SVN, formatting changes
 ;------------------------------------------------------------
     freqlist = ['30','44','70','100','143','217','353','545','857','1874','2141','2998','3331','4612','4997','11992','24983']
-    freqval = [28.405889,44.072241,70.421396,100,143,217,353,545,857.,1874.,2141.,2998.,3331.,4612.,4997.,11992.,24983.] ]
+    freqval = [28.405889,44.072241,70.421396,100,143,217,353,545,857.,1874.,2141.,2998.,3331.,4612.,4997.,11992.,24983.]
     fwhmlist = [33.1587,28.0852,13.0812,9.88,7.18,4.87,4.65,4.72,4.39,4.3,4.0,3.8,0.62,0.65,3.8,0.97,1.02] ; fwhm in arcminutes
 
     if (not keyword_set(rinner)) then rinner = 2.0
