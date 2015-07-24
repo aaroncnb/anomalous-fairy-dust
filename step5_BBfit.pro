@@ -19,27 +19,24 @@ FUNCTION modBB, wave, temperature, beta
   Bnu = 2.D*!MKS.hplanck*!MKS.clight/wmic^3 $
       / ( EXP(!MKS.hplanck*!MKS.clight/(wmic*!MKS.kboltz*temperature)) - 1.D )
   wave0 = 100.D
-  Inu = ((wave0/wave)^beta)*Bnu*10^(20.) ;; [MJy/sr]
+  Snu = ((wave0/wave)^beta)*Bnu*10^(20.)*[Sr per one degree aperture]/[10^6] ;; [Jy]
 
-  RETURN, Inu
+  RETURN, Snu
 
 END
 
 ;; Interface with the fitter
 ;;--------------------------
-PRO fitinterface, wave, parm, Inu
-  Inu = EXP(parm[0]) * MODBB(wave,EXP(parm[1]),parm[2])
+PRO fitinterface, wave, parm, Snu
+  Snu = EXP(parm[0]) * MODBB(wave,EXP(parm[1]),parm[2])
 END
 
   ;;==========================================================================
 
 ;; 1) Load the data
 ;;-----------------
-AME = READ_CSV('../Data/AME.txt', COUNT = amy, HEADER = amyhead, MISSING_VALUE='')
-print, "AME Data Read"
-NROIs = N_ELEMENTS(AME.field01)
-
-RESTORE()
+RESTORE, "multiepoch_photometry_akari_.sav"
+print, "circulaer aperture photometry variables and results restored..."
 
  ;;Arrays for the Big Loop on the Regions
 temperature_all    = DBLARR(1,ns)
@@ -50,32 +47,23 @@ FIR_all            = DBLARR(1,ns)
 tau250_all         = DBLARR(1,ns)
 bands_FIR_all      = DBLARR(nmaps,ns)
 bands_G0_all       = DBLARR(nmaps,ns)
-Inu_SED_all          = DBLARR(11,ns)
-pixct_all               = DBLARR(nmaps,ns)
 Snu_SED_all         = DBLARR(nmaps,ns)
 
 
 
-  ;; 2) Here's where we setup the Big Loop on the Regions
+  ;; 2) Here's where we loop through the sources
 
-FOR cerberus=0,NROIs-1 DO BEGIN
- ROI  = AME.field01[cerberus]
- RESTORE,"../Save/noirc_wAME/step4_"+ROI+".xdr"
-weights = 1./dLnu_SED^2
-Inu_SED = Lnu_SED
-
-
-;; We restrain the wavelength range by zeroing the weight of the
-;; fluxes < 50 microns.
- 
- weights[*,*,WHERE(wave LT 90.D) AND WHERE(wave GE 1000.D)] = 0.D
-; weights[*,*,WHERE(wave LT 90)] = 0.D
+   Snu = DBLARR(nmaps)
+   Snu = PhotoResult[
+   for m=0,nmaps-1 DO BEGIN
+      weights[s] = PhotoResult[s,((m+1)*2)-1]
+      ;; We restrain the wavelength range by zeroing the weight of the
+      ;; fluxes < 50 microns.
+      weights[*,*,WHERE(wave LT 90)] = 0.D
 
 ;; 2) BB fitting
 ;;----------------------
-
-       ;;Arrays for the big loop on the pixels
-
+;;This is done on a per-row basis in the case of circular aperture photometry results
       ;;   a. Initial guesses of the parameters:
       ;;      parm[0] = LOG(optical depth)
       ;;      parm[1] = LOG(temperature in K)
@@ -84,7 +72,7 @@ Inu_SED = Lnu_SED
       Nparm = 3
       parm = DBLARR(Nparm)
       parm[2] = 2.D
-      Bnumax =  MAX(Inu_SED[x,y,*]*nu^(-parm[2]),imax)
+      Bnumax =  MAX(Snu*nu^(-parm[2]),imax)
      parm[1] = ALOG( 5.1D-3 / (wave[imax]*!MKS.micron) ) ;; relation T/lambmax
 ;      parm[1] = ALOG( 20.D) ;; Temperature
       parm[0] = ALOG( Inu_SED[x,y,imax]/MODBB(wave[imax],EXP(parm[1]),parm[2]) )
@@ -92,7 +80,7 @@ Inu_SED = Lnu_SED
       ;;   b. Call the least square fitter.
       parinfo = REPLICATE({value:0.0,fixed:0,limited:[0,0],limits:[0.,0.]},Nparm)
 ;      parinfo[2].limited = [1,1]  
-      parinfo[2].limits = [0,5]
+;      parinfo[2].limits = [0,5]
 ;       parinfo[2].fixed = 1
 ;       parinfo[2].value = 2.D
 
