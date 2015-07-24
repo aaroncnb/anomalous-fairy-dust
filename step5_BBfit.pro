@@ -9,36 +9,6 @@ s;PRO step5_BBfit_akari_
 ;;*
 ;;*****************************************************************************
 ;;
-FUNCTION Exponent, axis, index, number
-
-     ; A special case.
-     IF number EQ 0 THEN RETURN, '0' 
-
-     ; Assuming multiples of 10 with format.
-     ex = String(number, Format='(e8.0)') 
-     pt = StrPos(ex, '.')
-
-     first = StrMid(ex, 0, pt)
-     sign = StrMid(ex, pt+2, 1)
-     thisExponent = StrMid(ex, pt+3)
-
-     ; Shave off leading zero in exponent
-     WHILE StrMid(thisExponent, 0, 1) EQ '0' DO thisExponent = StrMid(thisExponent, 1)
-
-     ; Fix for sign and missing zero problem.
-     IF (Long(thisExponent) EQ 0) THEN BEGIN
-        sign = ''
-        thisExponent = '0'
-     ENDIF
-
-     ; Make the exponent a superscript.
-     IF sign EQ '-' THEN BEGIN
-        RETURN, first + 'x10!U' + sign + thisExponent + '!N' 
-     ENDIF ELSE BEGIN             
-        RETURN, first + 'x10!U' + thisExponent + '!N'
-     ENDELSE
-     
-   END
 
 ;; Modified black body function
 ;;-----------------------------
@@ -68,21 +38,23 @@ AME = READ_CSV('../Data/AME.txt', COUNT = amy, HEADER = amyhead, MISSING_VALUE='
 print, "AME Data Read"
 NROIs = N_ELEMENTS(AME.field01)
 
+RESTORE()
+
  ;;Arrays for the Big Loop on the Regions
 
-IRC_ratio_all      = DBLARR(1,98)
-temperature_all    = DBLARR(1,98)
-beta_all           = DBLARR(1,98)
-G0_all             = DBLARR(1,98)
-chi2_all          = DBLARR(1,98)
-FIR_all            = DBLARR(1,98)
-tau250_all         = DBLARR(1,98)
-bands_FIR_all      = DBLARR(11,98)
-bands_G0_all       = DBLARR(11,98)
-Inu_SED_all          = DBLARR(11,98)
-pixct_all               = DBLARR(1,98)
-solidangle_all       = DBLARR(1,98)
-Snu_SED_all         = DBLARR(11,98)
+IRC_ratio_all      = DBLARR(1,ns)
+temperature_all    = DBLARR(1,ns)
+beta_all           = DBLARR(1,ns)
+G0_all             = DBLARR(1,ns)
+chi2_all          = DBLARR(1,ns)
+FIR_all            = DBLARR(1,ns)
+tau250_all         = DBLARR(1,ns)
+bands_FIR_all      = DBLARR(11,ns)
+bands_G0_all       = DBLARR(11,ns)
+Inu_SED_all          = DBLARR(11,ns)
+pixct_all               = DBLARR(1,ns)
+solidangle_all       = DBLARR(1,ns)
+Snu_SED_all         = DBLARR(nmaps,ns)
 
 
 
@@ -220,29 +192,7 @@ FOR i=0,Nband-1 DO Inu[i,*] = (Inu_SED[*,*,i])[iplot]
 Nfine = 200
 wfine = RAMP(Nfine,1.,1000,/POW) ;; Create a logarithmic ramp (private function)
 nufine = !MKS.clight/!MKS.micron/wfine
-;; Actual display.Inu
-;FOR k=0,1 DO BEGIN
-;  @get_colors
-;  col = [!RED,!GREEN,!YELLOW,!BLUE,!RED,!GREEN,!YELLOW,!BLUE]
-;  IF (k EQ 1) THEN BEGIN
-;    fileps = "../Figures/step5_fits_betafix_"+ROI+".eps"
-;    SET_PLOT, 'PS'
-;    DEVICE, FILE=fileps, /ENCAPS, /COLOR, BITS=8, XSIZE=7, YSIZE=5, /INCH
-;  ENDIF ELSE WINDOW, 2, XSIZE=600, YSIZE=400
-;  PLOT_OO, [0.], [0.], XRANGE=[8,1000], YRANGE=MINMAX(Inu)*[0.1,10], $ 
-;           XTITLE="!6Wavelength [!7l!6m]    "+ROI+" ", $
-;           YTITLE="I("+GREEK(lamda)+") [MJy/sr]", /XSTYLE, /YSTYLE, THICK=2
-;  FOR i=0,Nplot-1 DO BEGIN
-;    OPLOT, wfine, MODBB(wfine,temperature[iplot[i]],beta[iplot[i]]) $
-;                  *tau250[iplot[i]], COLOR=col[i], THICK=1.5
-;    OPLOT, wave, Inu[*,i], COLOR=col[i], PSYM=4
-;  ENDFOR
-;  IF (k EQ 1) THEN BEGIN
-;    DEVICE, /CLOSE
-;    SET_PLOT, 'X'
-;    PRINT, " - File "+fileps+" has been written."
-;  ENDIF
-;ENDFOR
+
 
 ;;Calculate some average properties for each map. 
 
@@ -284,26 +234,6 @@ fileps = "../Figures/noirc_wAME/appA_"+STRTRIM(STRING(cerberus),1)+".eps"
   DEVICE, FILE=fileps, /ENCAPS, /COLOR, BITS=24, XSIZE=6.0, YSIZE=1.50, /INCH
 ENDIF
 
-  !P.Multi=[0,4,1]
-
-  p = [0.01, 0.26, 0.94, 0.94] ;; For Horizontal Color Bar
-;p = [0.26, 0.01,0.93, 0.93] ;; Vertical Color Bar
-  cgLoadCT, 39, NColors=254
-  cgImage, tau250, Position=p, Missing_Value=-32767, Missing_Color='white', Stretch='Clip', Clip=3 , /KEEP_ASPECT_RATIO ;, /REVERSE
- cgColorbar, Position=[p[0], p[1]-0.1, p[2], p[1]-0.05], RANGE= [0.0002,0.002], TITLE = textoidl('\tau_{250}'), CHARSIZE= 0.85; , /REVERSE
-cgText, 0.02, 0.945, Alignment=0.1, /Normal, ""+ROI+"", COLOR= 'Black', CHARSIZE= 0.85
-p = [0.01, 0.26, 0.93, 0.93] 
- cgLoadCT, 39, NColors=254
-  cgImage, temperature, Position=p, Missing_Value=-32767, Missing_Color='white', Stretch='Clip', Clip=3,/KEEP_ASPECT_RATIO
-  cgColorbar, Position=[p[0], p[1]-0.1, p[2], p[1]-0.05], RANGE= [10,35] , TITLE = "!6Dust temperature [K]",  CHARSIZE= 0.80;, /XLOG
-p = [0.01, 0.26, 0.93, 0.93] 
- cgLoadCT, 39, NColors=254
-  cgImage, G0, Position=p, Missing_Value=-32767, Missing_Color='white', Stretch='Clip', Clip=3,/KEEP_ASPECT_RATIO
-  cgColorbar, Position=[p[0], p[1]-0.1, p[2], p[1]-0.05], RANGE= [0.1,10], TITLE ="G0",  CHARSIZE= 0.80
-p = [0.01, 0.26, 0.93, 0.93] 
- cgLoadCT, 39, NColors=254
-  cgImage, chi2, Position=p, Missing_Value=-32767, Missing_Color='white', Stretch='Clip', Clip=3,/KEEP_ASPECT_RATIO
-  cgColorbar, Position=[p[0], p[1]-0.1, p[2], p[1]-0.05], RANGE= [0.1,6],  TITLE = "!6Reduced chi square",  CHARSIZE= 0.80
 
  !P.Multi =0
 IF (k EQ 1) THEN BEGIN
@@ -312,29 +242,6 @@ cgPS2PDF, fileps,  /DELETE_PS, UNIX_CONVERT_CMD='epstopdf'
 SET_PLOT, 'X'
 ENDIF
 ENDFOR
-
-;stop
-;;   c. Plot a correlation between parameters.
-;FOR k=0,1 DO BEGIN
-;  IF (k EQ 1) THEN BEGIN
-;    fileps = "../Figures/noirc_wAME/step5_beta_T_betafix_"+ROI+".eps"
-;    SET_PLOT, 'PS'
-;    DEVICE, FILE=fileps, /ENCAPS, /COLOR, BITS=8, XSIZE=6, YSIZE=6, /INCH
-;  ENDIF ELSE WINDOW, 2, XSIZE=500, YSIZE=500
-;;Adjusting the plot range manually rather than with MINMAX(temperature[WHERE(beta GT 0.)])
-;  PLOT, [0.], [0.], XRANGE=MINMAX(temperature[WHERE(beta GT 0.)]), $
-;        YRANGE=[0.5,2.5], $
-;        XTITLE="!6Dust temperature [K]", YTITLE="!6Emissivity index !7b!6", TITLE= "!7b!6 vs. T  "+ROI+" ", $
-;        /XSTYLE, /YSTYLE
-;  cgScatter2D, temperature, beta, PSYM=4, FIT= 0, COLOR = RED, /Overplot ;, COEFFICIENT = Pearson, PARAMS = Linear 
-;  ;OPLOT, temperature, beta, PSYM=4
-;  IF (k EQ 1) THEN BEGIN
-;    DEVICE, /CLOSE
-;    SET_PLOT, 'X'
-;    PRINT, " - File "+fileps+" has been written."
-;  ENDIF
-;ENDFOR
-
 
 phot_error = [0.051D,0.151D,0.104D,0.10D,0.10D,0.135D,0.10D,0.10D,0.07D,0.07D,0.10D]
 Inu_SED_all_error = DBLARR(11,98)
