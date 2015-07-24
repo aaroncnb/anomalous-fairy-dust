@@ -12,6 +12,7 @@ s;PRO step5_BBfit_akari_
 
 ;; Modified black body function
 ;;-----------------------------
+;; This function will need to be updated later, since the HAPER results are in Jy (not MJy/sr).
 FUNCTION modBB, wave, temperature, beta
    
   wmic = wave*!MKS.micron ;; [m]
@@ -41,19 +42,16 @@ NROIs = N_ELEMENTS(AME.field01)
 RESTORE()
 
  ;;Arrays for the Big Loop on the Regions
-
-IRC_ratio_all      = DBLARR(1,ns)
 temperature_all    = DBLARR(1,ns)
 beta_all           = DBLARR(1,ns)
 G0_all             = DBLARR(1,ns)
 chi2_all          = DBLARR(1,ns)
 FIR_all            = DBLARR(1,ns)
 tau250_all         = DBLARR(1,ns)
-bands_FIR_all      = DBLARR(11,ns)
-bands_G0_all       = DBLARR(11,ns)
+bands_FIR_all      = DBLARR(nmaps,ns)
+bands_G0_all       = DBLARR(nmaps,ns)
 Inu_SED_all          = DBLARR(11,ns)
-pixct_all               = DBLARR(1,ns)
-solidangle_all       = DBLARR(1,ns)
+pixct_all               = DBLARR(nmaps,ns)
 Snu_SED_all         = DBLARR(nmaps,ns)
 
 
@@ -66,16 +64,6 @@ FOR cerberus=0,NROIs-1 DO BEGIN
 weights = 1./dLnu_SED^2
 Inu_SED = Lnu_SED
 
-tau250             = DBLARR(Nx_SED,Ny_SED)      ;; [m/pixel]
-temperature        = DBLARR(Nx_SED,Ny_SED)      ;; [K]
-beta               = DBLARR(Nx_SED,Ny_SED)      ;; emissivity index
-G0                 = DBLARR(Nx_SED,Ny_SED)      ;; ISRF / ISRF0
-chi2               = DBLARR(Nx_SED,Ny_SED)      ;; reduced chi square
-FIR                    = DBLARR(Nx_SED,Ny_SED)      ;; Estimation of the far-IR emission, 
-IRC_ratio            = DBLARR(Nx_SED,Ny_SED)      ;;
-bands_FIR          = DBLARR(Nx_SED,Ny_SED,Nband);;
-bands_G0           = DBLARR(Nx_SED,Ny_SED,Nband);;
-
 
 ;; We restrain the wavelength range by zeroing the weight of the
 ;; fluxes < 50 microns.
@@ -83,14 +71,9 @@ bands_G0           = DBLARR(Nx_SED,Ny_SED,Nband);;
  weights[*,*,WHERE(wave LT 90.D) AND WHERE(wave GE 1000.D)] = 0.D
 ; weights[*,*,WHERE(wave LT 90)] = 0.D
 
-;; 2) Pixel by pixel fit
+;; 2) BB fitting
 ;;----------------------
 
-;; Big loop on the pixels.
-
-FOR x=0,Nx_SED-1 DO BEGIN
-  FOR y=0,Ny_SED-1 DO BEGIN
-    IF (mask_SED[x,y] EQ 0) THEN BEGIN
        ;;Arrays for the big loop on the pixels
 
       ;;   a. Initial guesses of the parameters:
