@@ -1,4 +1,4 @@
-s;PRO step5_BBfit_akari_
+;PRO step5_BBfit_akari_
 ;;*****************************************************************************
 ;;*
 ;;*          International Young Astronomer School on Exploiting
@@ -35,7 +35,7 @@ END
 
 ;; 1) Load the data
 ;;-----------------
-RESTORE, "multiepoch_photometry_akari_.sav"
+RESTORE, "../Data/multiepoch_photometry_akari_.sav"
 print, "circulaer aperture photometry variables and results restored..."
 
  ;;Arrays for the Big Loop on the Regions
@@ -110,13 +110,13 @@ for s=0,ns-1 do begin
       ;;   c. Store the final results.
       PCXVG0             = (17.5D)^(4+2)
       G0_corr            = 10^(2.8709-(1.4267*beta[x,y]))  ;;Correction factor when using a free beta        
-      tau250        = EXP(parm[0])
-      temperature   = EXP(parm[1])
-      beta          = parm[2]
-      chi2          = TOTAL(weights[x,y,*]*(Inu_SED[x,y,*]-fit)^2)/(Nband-Nparm-1.)
+      tau250_all[s]        = EXP(parm[0])
+      temperature_all[s]   = EXP(parm[1])
+      beta_all[s]          = parm[2]
+      chi2_all[s]          = TOTAL(weights[x,y,*]*(Inu_SED[x,y,*]-fit)^2)/(Nband-Nparm-1.)
       modbb_fine         = MODBB(wfine,temperature[x,y],beta[x,y])*tau250[x,y]
       modbb_bands        = MODBB(wave,temperature[x,y],beta[x,y])*tau250[x,y]
-      FIR           = integral(wfine,modbb_fine,5,1000, /Double)       ;; Total Far-Infrared Emission
+      FIR_all[s]           = integral(wfine,modbb_fine,5,1000, /Double)       ;; Total Far-Infrared Emission
     
   G0            = G0_corr*((temperature/17.5D)^(4+beta)) ;; ISRF (Relative to Solar Village)
 
@@ -147,12 +147,9 @@ phot_error = [0.051D,0.151D,0.104D,0.10D,0.10D,0.135D,0.10D,0.10D,0.07D,0.07D,0.
 ;;   d. Savings.
 
 ;;Save the General file, with mean results from all sources. Will be used in plotting.
-filexdr = "../Save/noirc_wAME/step5_betafix_general.xdr"
+filexdr = "../Save/BBfit.xdr"
 SAVE, FILE=filexdr,  $
 Nband,               $
-Inu_SED_all,         $
-Inu_FIR_all,         $
-IRC_ratio_all,       $
 temperature_all,     $
 beta_all,            $
 tau250_all,           $
