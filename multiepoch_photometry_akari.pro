@@ -75,7 +75,7 @@ pro multiepoch_photometry_akari, inputlist, maplist=maplist, radius=radius, gala
 
     readcol, maplist, format='(A)', fn
     nmaps = n_elements(fn)
-
+        PhotoResult = DBLARR[ns,nmaps*2]
     openw,1,file_basename(inputlist+'.photo'),width=200
 
     if (not keyword_set(radius)) then begin
@@ -125,8 +125,11 @@ pro multiepoch_photometry_akari, inputlist, maplist=maplist, radius=radius, gala
                 endif
             endelse
 
+  ;;;;;;;;;Let's change this next line so that it puts the data into a structure I can use for the blackbody fitting,
+  ;;;;;;;;;;;rather than a huge list of photometry results
             printf,1,sname[ct],ct2,glon[ct],glat[ct],fd,fd_err,fd_bg,format='(A18,X,I2,X,F12.7,X,F12.7,X,E11.3,X,E11.3,X,E11.3)'
-
+            PhotoResult[ct,ct2+0] = fd
+            PhotoResult[ct,ct2+1] = fd_err
         endfor
     endfor
 
