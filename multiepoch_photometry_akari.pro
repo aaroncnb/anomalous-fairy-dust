@@ -38,7 +38,8 @@ pro multiepoch_photometry_akari, inputlist, maplist=maplist, radius=radius, gala
 ;    Source_Name  Map_number  GLON   GLAT   Flux (Jy)  Flux_RMS (Jy)   Median_Background_Flux (Jy)
 ;
 ; HISTORY
-;
+; 22-July-2015 A. Bell              Many changes allowing AKARI and IRAS HEALPix maps to be used: 
+;;;;;;;;;;;; documented on https://github.com/aaroncnb/anomalous-fairy-dust.git (Check for latest version!)
 ; 10-Apr-2013  P. McGehee     Corrected ten() -> tenv() error, added /decimal keyword.
 ; 11-Feb-2013  P. McGehee     Change of input arguments.
 ; 20-Sep-2012  P. McGehee     Ingested into IPAC SVN, formatting changes
