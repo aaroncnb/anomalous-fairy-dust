@@ -1,4 +1,4 @@
-;PRO step5_BBfit_akari_
+;;PRO step5_BBfit_akari_
 ;;*****************************************************************************
 ;;*
 ;;*          International Young Astronomer School on Exploiting
@@ -19,7 +19,7 @@ FUNCTION modBB, wave, temperature, beta
   Bnu = 2.D*!MKS.hplanck*!MKS.clight/wmic^3 $
       / ( EXP(!MKS.hplanck*!MKS.clight/(wmic*!MKS.kboltz*temperature)) - 1.D )
   wave0 = 100.D
-  Snu = ((wave0/wave)^beta)*Bnu*10^(20.)*[Sr per one degree aperture]/[10^6] ;; [Jy]
+  Snu = ((wave0/wave)^beta)*Bnu*10^(20.)  ;;*[Sr per one degree aperture]/[10^6] ;; [Jy]
 
   RETURN, Snu
 
@@ -36,7 +36,7 @@ END
 ;; 1) Load the data
 ;;-----------------
 RESTORE, "../Data/multiepoch_photometry_akari_.sav"
-print, "circulaer aperture photometry variables and results restored..."
+print, "circular aperture photometry variables and results restored..."
 
  ;;Arrays for the Big Loop on the Regions
 temperature_all    = DBLARR(1,ns)
@@ -69,7 +69,7 @@ for s=0,ns-1 do begin
    Nparm = 3
    parm = DBLARR(Nparm)
    parm[2] = 2.D
-   Bnumax =  MAX(Snu*nu^(-parm[2]),imax)
+   Bnumax =  MAX(Snu[s,*]^(-parm[2]),imax)
    ;;Note that "imax" is the subscript of the maximum, not the maximum itself...be careful!
    parm[1] = ALOG( 5.1D-3 / (wave[imax]*!MKS.micron) ) ;; relation T/lambmax
    parm[1] = ALOG( 20.D) ;; Temperature
@@ -100,7 +100,7 @@ for s=0,ns-1 do begin
       ;; The FOR loop here is offset by 4. This is because the color correction is only applied to the FIR bands. We skip the first 4 bands.
       
       FOR h = 4, 9 DO BEGIN
-         Snu[h] = Inu_SED[x,y,h] / cc[h-4]
+         Snu[s,h] = Snu[s,h] / cc[h-4]
       ENDFOR
 
       fit = MPCURVEFIT ( wave, Snu[s,*], weights[s,*], parm, $
@@ -109,13 +109,13 @@ for s=0,ns-1 do begin
       
       ;;   c. Store the final results.
       PCXVG0             = (17.5D)^(4+2)
-      G0_corr            = 10^(2.8709-(1.4267*beta[x,y]))  ;;Correction factor when using a free beta        
+      G0_corr            = 10^(2.8709-(1.4267*beta[s]))  ;;Correction factor when using a free beta        
       tau250_all[s]        = EXP(parm[0])
       temperature_all[s]   = EXP(parm[1])
       beta_all[s]          = parm[2]
-      chi2_all[s]          = TOTAL(weights[x,y,*]*(Inu_SED[x,y,*]-fit)^2)/(Nband-Nparm-1.)
-      modbb_fine         = MODBB(wfine,temperature[x,y],beta[x,y])*tau250[x,y]
-      modbb_bands        = MODBB(wave,temperature[x,y],beta[x,y])*tau250[x,y]
+      chi2_all[s]          = TOTAL(weights[s,*]*(Snu[s,*]-fit)^2)/(Nband-Nparm-1.)
+      modbb_fine         = MODBB(wfine,temperature_all[s],beta_all[s])*tau250_all[s]
+      modbb_bands        = MODBB(wave,temperature_all[s],beta_all[s])*tau250_all[s]
       FIR_all[s]           = integral(wfine,modbb_fine,5,1000, /Double)       ;; Total Far-Infrared Emission
     
   G0            = G0_corr*((temperature/17.5D)^(4+beta)) ;; ISRF (Relative to Solar Village)
@@ -133,9 +133,8 @@ for s=0,ns-1 do begin
       PRINT, "  beta = "        , beta
       PRINT, "  chi2 = "        , chi2
 
-    ENDIF
   ENDFOR
-ENDFOR
+
 
 ;; 3) Analysis and savings
 ;;------------------------
