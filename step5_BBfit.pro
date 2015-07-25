@@ -19,7 +19,7 @@ FUNCTION modBB, wave, temperature, beta
   Bnu = 2.D*!MKS.hplanck*!MKS.clight/wmic^3 $
       / ( EXP(!MKS.hplanck*!MKS.clight/(wmic*!MKS.kboltz*temperature)) - 1.D )
   wave0 = 100.D
-  Snu = ((wave0/wave)^beta)*Bnu*10^(20.)  ;;*[Sr per one degree aperture]/[10^6] ;; [Jy]
+  Snu = ((wave0/wave)^beta)*Bnu*(10^(26.))*((!Pi^2)*((180/!Pi)^2)) ;;[Jy]
 
   RETURN, Snu
 
@@ -39,14 +39,14 @@ RESTORE, "../Data/multiepoch_photometry_akari_.sav"
 print, "circular aperture photometry variables and results restored..."
 
  ;;Arrays for the Big Loop on the Regions
-temperature_all    = DBLARR(1,ns)
-beta_all           = DBLARR(1,ns)
-G0_all             = DBLARR(1,ns)
-chi2_all          = DBLARR(1,ns)
-FIR_all            = DBLARR(1,ns)
-tau250_all         = DBLARR(1,ns)
-bands_FIR_all      = DBLARR(nmaps,ns)
-bands_G0_all       = DBLARR(nmaps,ns)
+temperature_all    = DBLARR(ns)
+beta_all           = DBLARR(ns)
+G0_all             = DBLARR(ns)
+chi2_all          = DBLARR(ns)
+FIR_all            = DBLARR(ns)
+tau250_all         = DBLARR(ns)
+bands_FIR_all      = DBLARR(ns,nmaps)
+bands_G0_all       = DBLARR(ns,nmaps)
 Snu = fd_all
 weights = fd_err_all
 wave = [550.,345.,160.,140.,100.,90.,65.,60.,25.,12]
@@ -108,30 +108,28 @@ for s=0,ns-1 do begin
                         /NODERIVATIVE, /QUIET )
       
       ;;   c. Store the final results.
-      PCXVG0             = (17.5D)^(4+2)
-      G0_corr            = 10^(2.8709-(1.4267*beta[s]))  ;;Correction factor when using a free beta        
+      PCXVG0             = (17.5D)^(4+2)       
       tau250_all[s]        = EXP(parm[0])
       temperature_all[s]   = EXP(parm[1])
       beta_all[s]          = parm[2]
-      chi2_all[s]          = TOTAL(weights[s,*]*(Snu[s,*]-fit)^2)/(Nband-Nparm-1.)
+      chi2_all[s]          = TOTAL(weights[s,*]*(Snu[s,*]-fit)^2)/(nmaps-Nparm-1.)
       modbb_fine         = MODBB(wfine,temperature_all[s],beta_all[s])*tau250_all[s]
       modbb_bands        = MODBB(wave,temperature_all[s],beta_all[s])*tau250_all[s]
       FIR_all[s]           = integral(wfine,modbb_fine,5,1000, /Double)       ;; Total Far-Infrared Emission
-    
-  G0            = G0_corr*((temperature/17.5D)^(4+beta)) ;; ISRF (Relative to Solar Village)
+      G0_corr            = 1.
+      ;G0_corr            = 10^(2.8709-(1.4267*beta_all[s]))  ;;Correction factor when using a free beta 
+      G0_all[s]            = G0_corr*((temperature_all[s]/17.5D)^(4+beta_all[s])) ;; ISRF (Relative to Solar Village)
 
-      bands_FIR[s,*]   = Snu[s,*] / FIR                        ;; Each band's intensity vs. FIR
-      bands_G0[s,*]    = Snu[s,*] / G0                         ;; Each band's intensity vs. the starlight field
+;      bands_FIR_all[s,*]   = Snu[s,*] / FIR_all[s]                        ;; Each band's intensity vs. FIR
+;      bands_G0_all[s,*]    = Snu[s,*] / G0_all[s]                         ;; Each band's intensity vs. the starlight field
 
       ;;   d. Print the results.
 
-      PRINT, "Pixel "+STRTRIM(x+1,2)+"/"+STRTRIM(Nx_SED,2)+"," $
-                     +STRTRIM(y+1,2)+"/"+STRTRIM(Ny_SED,2)
-      PRINT, "  tau250 = "        , tau250,        " [m]"
-      PRINT, "  temperature = " , temperature, " K"
-      PRINT, "  G0 =  "         , G0,          " ISRF/ISRF_local"
-      PRINT, "  beta = "        , beta
-      PRINT, "  chi2 = "        , chi2
+      PRINT, "  tau250 = "        , tau250_all[s],        " [m]"
+      PRINT, "  temperature = " , temperature_all[s], " K"
+      PRINT, "  G0 =  "         , G0_all[s],          " ISRF/ISRF_local"
+      PRINT, "  beta = "        , beta_all[s]
+      PRINT, "  chi2 = "        , chi2_all[s]
 
   ENDFOR
 
@@ -148,16 +146,13 @@ phot_error = [0.051D,0.151D,0.104D,0.10D,0.10D,0.135D,0.10D,0.10D,0.07D,0.07D,0.
 ;;Save the General file, with mean results from all sources. Will be used in plotting.
 filexdr = "../Save/BBfit.xdr"
 SAVE, FILE=filexdr,  $
-Nband,               $
+nmaps,               $
 temperature_all,     $
 beta_all,            $
 tau250_all,           $
 G0_all,              $
 FIR_all,             $
-bands_FIR_all,       $
-bands_G0_all,      $
-solidangle_all,    $
-Snu_SED_all 
+Snu
 PRINT, " - File "+filexdr+" has been written."
 
 END
