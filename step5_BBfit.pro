@@ -19,7 +19,9 @@ FUNCTION modBB, wave, temperature, beta
   Bnu = 2.D*!MKS.hplanck*!MKS.clight/wmic^3 $
       / ( EXP(!MKS.hplanck*!MKS.clight/(wmic*!MKS.kboltz*temperature)) - 1.D )
   wave0 = 100.D
-  Snu = ((wave0/wave)^beta)*Bnu*(10^(26.))*((!Pi^2)*((180/!Pi)^2)) ;;[Jy]
+  ;;;;The conversion factor from MJy/sr to Jy below is assuming that the circular aperture of the sources has a 1deg radius!
+  ;;;; Pi^2 cancels out of the conversion, so in the end we just multiply by 180^2 [deg^-1].
+  Snu = ((wave0/wave)^beta)*Bnu*(10^(26.))*(0.003006449284)) ;;  0.003006449284 [sr] per Pi^2 [sq.deg].
 
   RETURN, Snu
 
@@ -44,7 +46,7 @@ beta_all           = DBLARR(ns)
 G0_all             = DBLARR(ns)
 chi2_all          = DBLARR(ns)
 FIR_all            = DBLARR(ns)
-tau250_all         = DBLARR(ns)
+tau100_all         = DBLARR(ns)
 bands_FIR_all      = DBLARR(ns,nmaps)
 bands_G0_all       = DBLARR(ns,nmaps)
 Snu = fd_all
@@ -109,12 +111,12 @@ for s=0,ns-1 do begin
       
       ;;   c. Store the final results.
       PCXVG0             = (17.5D)^(4+2)       
-      tau250_all[s]        = EXP(parm[0])
+      tau100_all[s]        = EXP(parm[0])
       temperature_all[s]   = EXP(parm[1])
       beta_all[s]          = parm[2]
       chi2_all[s]          = TOTAL(weights[s,*]*(Snu[s,*]-fit)^2)/(nmaps-Nparm-1.)
-      modbb_fine         = MODBB(wfine,temperature_all[s],beta_all[s])*tau250_all[s]
-      modbb_bands        = MODBB(wave,temperature_all[s],beta_all[s])*tau250_all[s]
+      modbb_fine         = MODBB(wfine,temperature_all[s],beta_all[s])*tau100_all[s]
+      modbb_bands        = MODBB(wave,temperature_all[s],beta_all[s])*tau100_all[s]
       FIR_all[s]           = integral(wfine,modbb_fine,5,1000, /Double)       ;; Total Far-Infrared Emission
       G0_corr            = 1.
       ;G0_corr            = 10^(2.8709-(1.4267*beta_all[s]))  ;;Correction factor when using a free beta 
@@ -125,7 +127,7 @@ for s=0,ns-1 do begin
 
       ;;   d. Print the results.
 
-      PRINT, "  tau250 = "        , tau250_all[s],        " [m]"
+      PRINT, "  tau100 = "        , tau100_all[s],        " [m]"
       PRINT, "  temperature = " , temperature_all[s], " K"
       PRINT, "  G0 =  "         , G0_all[s],          " ISRF/ISRF_local"
       PRINT, "  beta = "        , beta_all[s]
@@ -149,7 +151,7 @@ SAVE, FILE=filexdr,  $
 nmaps,               $
 temperature_all,     $
 beta_all,            $
-tau250_all,           $
+tau100_all,           $
 G0_all,              $
 FIR_all,             $
 Snu
