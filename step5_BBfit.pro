@@ -21,7 +21,7 @@ FUNCTION modBB, wave, temperature, beta
   wave0 = 100.D
   ;;;;The conversion factor from MJy/sr to Jy below is assuming that the circular aperture of the sources has a 1deg radius!
   ;;;; Pi^2 cancels out of the conversion, so in the end we just multiply by 180^2 [deg^-1].
-  Snu = ((wave0/wave)^beta)*Bnu*(10^(26.))*(0.003006449284)) ;;  0.003006449284 [sr] per Pi^2 [sq.deg].
+  Snu = ((wave0/wave)^beta)*Bnu*(10^(26.))*(0.003006449284) ; [Jy] (  0.003006449284 [sr] per Pi^2 [sq.deg]. )
 
   RETURN, Snu
 
@@ -40,18 +40,21 @@ END
 RESTORE, "../Data/multiepoch_photometry_akari_.sav"
 print, "circular aperture photometry variables and results restored..."
 
- ;;Arrays for the Big Loop on the Regions
+ ;;Arrays for the loop over the sources
 temperature_all    = DBLARR(ns)
-beta_all           = DBLARR(ns)
-G0_all             = DBLARR(ns)
-chi2_all          = DBLARR(ns)
-FIR_all            = DBLARR(ns)
-tau100_all         = DBLARR(ns)
-bands_FIR_all      = DBLARR(ns,nmaps)
-bands_G0_all       = DBLARR(ns,nmaps)
-Snu = fd_all
-weights = fd_err_all
-wave = [550.,345.,160.,140.,100.,90.,65.,60.,25.,12]
+beta_all                 = DBLARR(ns)
+G0_all                    = DBLARR(ns)
+chi2_all                  = DBLARR(ns)
+FIR_all                    = DBLARR(ns)
+tau100_all              = DBLARR(ns)
+bands_FIR_all         = DBLARR(ns,nmaps)
+bands_G0_all          = DBLARR(ns,nmaps)
+Snu_all                   = DBLARR(ns,nmaps)
+weights                  = DBLARR(ns,nmaps)
+
+Snu_all     = fd_all
+weights    = fd_err_all
+wave        =  [550.,345.,160.,140.,100.,90.,65.,60.,25.,12.]
 
 
   ;; 2) Here's where we loop through the sources
