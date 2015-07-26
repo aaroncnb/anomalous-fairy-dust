@@ -1,137 +1,185 @@
-pro multiepoch_photometry_akari, inputlist, maplist=maplist, radius=radius, galactic=galactic, decimal=decimal, rinner=rinner, router=router
+;;PRO step5_BBfit_akari_
+;;*****************************************************************************
+;;*
+;;*          International Young Astronomer School on Exploiting
+;;*                   Herschel and Planck Data (2013)
+;;*
+;;*                   STEP5: Modified black body fits
+;;*                       (Created by F. Galliano)
+;;*
+;;*****************************************************************************
+;;
 
-; By default this code takes as input a list of source coordinates 
-; which are stored in inputlist with the following form:
-; sname, RAHR, RAMIN, RASEC, DECDEG, DECMIN, DECSEC
-;  
-; However, if the keyword decimal is set, then the assumed format is:
-; sname, RA, DEC - in decimal degrees. 
-;
-; Furthermore if the keyword galactic is set, then the assumed format is:
-; sname, GLON, GLAT - in decimal degrees.
-;
-;
-; INPUTS
-; inputlist - CSV (or other tabular format) file containing the list of target sources along wiht coordinates (can be RA and DEC or GLON GLAT)
-; maplist - file containing names of input HEALPix maps
-;     freq [GHz] is taken from the FREQ header keyword in the extension
-;     units string is taken from the TUNIT1 header keyword in the
-;     extension
-; Note: actual frequency and FWHM parameters are from the RIMO for DX9
-; radius - radius of the source aperture in arcmin, if 0 then set to
-;          Planck FWHM for this band.
-; galactic - see above.
-; rinner - inner radius of background annulus in units of <radius>,
-;          defaults to 2.0.
-; router - outer radius of background annulus in units of <radius>,
-;          defaults to 3.0.
+;; Modified black body function
+;;-----------------------------
+;; This function will need to be updated later, since the HAPER results are in Jy (not MJy/sr).
+FUNCTION modBB, wave, temperature, beta
+   
+  wmic = wave*!MKS.micron ;; [m]
+  Bnu = 2.D*!MKS.hplanck*!MKS.clight/wmic^3 $
+      / ( EXP(!MKS.hplanck*!MKS.clight/(wmic*!MKS.kboltz*temperature)) - 1.D )
+  wave0 = 100.D
+  ;;;;The conversion factor from MJy/sr to Jy below is assuming that the circular aperture of the sources has a 1deg radius!
+  ;;;; Pi^2 cancels out of the conversion, so in the end we just multiply by 180^2 [deg^-1].
+  Snu = ((wave0/wave)^beta)*Bnu*(1.D26)*(0.000956981721D) ; [Jy] (  0.000956981721D [sr] per Pi [sq.deg]. )
 
-; OUTPUTS
-; This procedure creates an output file named <inputlist>.photo which
-; contains the list of the all-sky maps used and the aperture photometry
-; results for each source.
-; 
-; The flux density is given in Jy.  It is measured in an aperture of i
-; radius = FWHM if radius is not specified.
-;
-; The data columns presented in the output file are:
-;    Source_Name  Map_number  GLON   GLAT   Flux (Jy)  Flux_RMS (Jy)   Median_Background_Flux (Jy)
-;
-; HISTORY
-;
-; 10-Apr-2013  P. McGehee     Corrected ten() -> tenv() error, added /decimal keyword.
-; 11-Feb-2013  P. McGehee     Change of input arguments.
-; 20-Sep-2012  P. McGehee     Ingested into IPAC SVN, formatting changes
-;------------------------------------------------------------
-    freqlist = ['30','44','70','100','143','217','353','545','857','1874','2141','2998','3331','4612','4997','11992','24983']
-    freqval = [28.405889,44.072241,70.421396,100,143,217,353,545,857.,1874.,2141.,2998.,3331.,4612.,4997.,11992.,24983.]
-    fwhmlist = [33.1587,28.0852,13.0812,9.88,7.18,4.87,4.65,4.72,4.39,4.3,4.0,3.8,0.62,0.65,3.8,0.97,1.02] ; fwhm in arcminutes
+  RETURN, Snu
 
-    if (not keyword_set(rinner)) then rinner = 2.0
-    if (not keyword_set(router)) then router = 3.0
+END
 
-    k0 = 1.0 & k1 = rinner & k2 = router 
-    apcor = ((1 - (0.5)^(4*k0^2)) - $ 
-             ((0.5)^(4*k1^2) - (0.5)^(4*k2^2)))^(-1)
-  
-; 'galactic' overrules 'decimal' 
-    if (keyword_set(galactic)) then begin 
-        readcol,inputlist,sname,glon,glat,format='A,D,D'
-        euler, glon, glat, ra, dec, 2
-    endif else if (keyword_set(decimal)) then begin
-        readcol,inputlist,sname,ra,dec,format='A,D,D'
-        euler,ra,dec,glon,glat,1
-    endif else begin
-        readcol,inputlist,sname,rah,ram,ras,decd,decm,decs,format='A,I,I,D,I,I,D'
-        ra = 15*tenv(rah,ram,ras)
-        dec = tenv(decd,decm,decs)
-        euler,ra,dec,glon,glat,1
-    endelse
+;; Interface with the fitter
+;;--------------------------
+PRO fitinterface, wave, parm, Snu
+  Snu = EXP(parm[0]) * MODBB(wave,EXP(parm[1]),parm[2])
+END
 
-    ns = n_elements(glat)
+  ;;==========================================================================
 
-    fd3 = -1
-    fd_err3 = -1
+;; 1.1) Here's where we load in the aperture photometry results from HAPER
+;;-----------------
+RESTORE, "../Data/multiepoch_photometry_akari_.sav"
+print, "circular aperture photometry variables and results restored..."
 
-    readcol, maplist, format='(A)', fn
-    nmaps = n_elements(fn)
-        PhotoResult = DBLARR[ns,nmaps*2]
-    openw,1,file_basename(inputlist+'.photo'),width=200
+;; 1.2) Settings and Setup:
+;;  Here we create some template arrays. We'll need these at different stages throughout the code. "_all" is there to make it easy to recognize that these are arrays, holding the results of "all" of the sources.
 
-    if (not keyword_set(radius)) then begin
-        printf,1,'; A multiplicative aperture correction factor of ',apcor,' has been applied to the flux densities'
-        printf,1, '; assuming that the source is a point source. Flux densities are in Jy.'
-    endif else $
-        printf,1,';No aperture correction factor has been applied. Flux densities are in Jy.'
+temperature_all    = DBLARR(ns)
+beta_all                 = DBLARR(ns)
+G0_all                    = DBLARR(ns)
+chi2_all                  = DBLARR(ns)
+FIR_all                    = DBLARR(ns)
+tau100_all              = DBLARR(ns)
+Snu_all                   = DBLARR(ns,nmaps)
+weights                  = DBLARR(ns,nmaps)
 
-    printf,1, ';'
-    printf,1, ';Output format:'
-    printf,1, '; Source_Name  Map_number  GLON   GLAT   Flux (Jy) Flux_RMS (Jy) Median_Background_Flux (Jy)'
-    printf, 1, ';'
-    printf, 1, '; Map List:'
-    for i = 0, nmaps-1 do begin
-        printf, 1, '; Map #',i, fn[i]
-    endfor
-    printf, 1, ';'
+;;List of the wavelengths of the bands used:
+wave        =  [12.D,25.D,60.D,65.D,90.D,100.D,140.D,160.D,345.D,550.D]
 
-    for ct2 = 0,nmaps-1 do begin
-        xtmp = mrdfits(fn[ct2], 1, hdr1)
-        freq = strtrim(sxpar(hdr1, 'FREQ'),2 )
-        units = strtrim(sxpar(hdr1, 'TUNIT1'),2 )
+;; Take the flux @ a given band from the HAPER result-array, "fd_all"
+Snu_all     = fd_all
+
+;;Use the flux-density errors as the weights for this greybody fitting routine:
+;;weights_all    = fd_err_all
+;weights_all      = 1./fd_err_all^2
+;;Set weights to 10% to test
+weights_all =1./(fd_all*0.1)^2
+
+
+;;Exclude the stochastic and small-grain dominated bands from the fitting:
+     ;;  This just means that we'll fit a blackbody only to the bands that are dominated by blackbody radiation (i.e., the far-infrared bands longer than 65 um)
+
+weights_all[*,WHERE(wave LT 70.D)] = 0.D
+
+;;  Later, we'll try and fit two blackbodies simultaneously- one fit the small grains and one for the bigger grains). The problem with doing that now, is we don't have a full dust SED model implemented. We'll need that to properly estimate the emissivity of the small grains.
+
+;; 2) Here were setup a loop which will cycle through all of the sources in the fd_all array. There's 98 in the full Planck Coll. AME paper. "ns" gives the number of sources, determined earlier by HAPER.
+
+for s=0,ns-1 do begin
+
+;; 2) BB fitting
+;;----------------------
+
+      ;;   a. Initial guesses of the parameters:
+      ;;      parm[0] = LOG(optical depth)
+      ;;      parm[1] = LOG(temperature in K)
+      ;;      parm[2] = beta
+
+   Nparm = 3
+   parm = DBLARR(Nparm)
+   parm[2] = 2.D
+   Bnumax =  MAX(Snu_all[s,WHERE(weights_all[s,*] NE 0.)]^(-parm[2]),imax)
+   ;;Note that "imax" is the subscript of the maximum, not the maximum itself...be careful!
+   ;parm[1] = ALOG( 5.1D-3 / (wave[imax]*!MKS.micron) ) ;; relation T/lambmax
+   parm[1] = ALOG( 20.D) ;; Temperature
+   parm[0] = ALOG(Snu_all[s,imax]/MODBB(wave[imax],EXP(parm[1]),parm[2]) )
+   parm_i = parm
+
+      ;;   b. Call the least square fitter.
+      parinfo = REPLICATE({value:0.0,fixed:0,limited:[0,0],limits:[0.,0.]},Nparm)
+          parinfo[2].limited = [1,1]  
+          parinfo[2].limits = [0,5]
+      ;    parinfo[2].fixed = 1
+       ;    parinfo[2].value = 2.D
+
+      fit = MPCURVEFIT( wave, Snu_all[s,*], weights_all[s,*], parm, $
+                        FUNCTION_NAME="fitinterface", PARINFO=parinfo, $
+                        /NODERIVATIVE,/QUIET )
+
+      ;;b.b Calculate color correction factors based on results of the first fitting
+
+      Nfine    = 500
+      wfine    = RAMP(Nfine,1.,1000,/POW) ;; Create a logarithmic ramp (private function)
+      nufine   = !MKS.clight/!MKS.micron/wfine
+     filters  = ['AKARI4','IRAS4','AKARI5','AKARI6','HFI1','HFI2'] 
+     sed_cc   = dustem_cc(wfine, MODBB(wfine,EXP(parm[1]),parm[2])*EXP(parm[0]),filters, cc=cc)
+     print, cc
+
+      ;;b.c. Apply color correction factors to the data, then re-run the fitting.
+      ;; The FOR loop here is offset by 4. This is because the color correction is only applied to the FIR bands. We skip the first 4 bands.
       
-        idx = where(freqlist eq freq, cnt)
-        if (cnt gt 0) then begin
-            currfreq = freqval[idx[0]]
-            if (not keyword_set(radius)) then $
-                radval = fwhmlist[idx[0]] $
-            else radval = radius
-        endif else begin
-            print, 'Invalid frequency ', freq, ' in ', fn[ct2]
-            exit
-        endelse
+FOR h = 0, 5 DO BEGIN
+         Snu_all[s,h] = Snu_all[s,h] / cc[h]
+      ENDFOR
 
-        for ct=0L,ns-1 do begin
-            haperflux, fn[ct2], currfreq, fwhm, glon[ct], glat[ct], $
-                1.*radval, rinner*radval, router*radval, units, $
-                fd, fd_err, fd_bg, /nested,/noise_mod
+     parm = parm_i
+     fit = MPCURVEFIT (wave, Snu_all[s,*], weights_all[s,*], parm, $
+                       FUNCTION_NAME="fitinterface", PARINFO=parinfo, $
+                       /NODERIVATIVE, /QUIET )
+      
+      ;;   c. Store the final results.
+      PCXVG0             =  (17.5D)^(4+2)       
+      tau100_all[s]           = EXP(parm[0])
+      temperature_all[s]   = EXP(parm[1])
 
-            if (finite(fd_err) eq 0) then begin
-                fd = -1
-                fd_err = -1
-            endif else begin
-                if not keyword_set(radius) then begin
-                    fd = fd*apcor
-                    fd_err = fd_err*apcor
-                endif
-            endelse
+      beta_all[s]          = parm[2]
 
-  ;;;;;;;;;Let's change this next line so that it puts the data into a structure I can use for the blackbody fitting,
-  ;;;;;;;;;;;rather than a huge list of photometry results
-            printf,1,sname[ct],ct2,glon[ct],glat[ct],fd,fd_err,fd_bg,format='(A18,X,I2,X,F12.7,X,F12.7,X,E11.3,X,E11.3,X,E11.3)'
-            PhotoResult[ct,ct2+0] = fd
-            PhotoResult[ct,ct2+1] = fd_err
-        endfor
-    endfor
+      chi2_all[s]          = TOTAL(weights_all[s,*]*(Snu_all[s,*]-fit)^2)/(nmaps-Nparm-1.)
 
-    close,1
-end
+      modbb_fine         = MODBB(wfine,temperature_all[s],beta_all[s])*tau100_all[s]
+
+      modbb_bands        = MODBB(wave,temperature_all[s],beta_all[s])*tau100_all[s]
+      
+;; Total Far-Infrared Emission
+      FIR_all          = integral(wfine,modbb_fine,5,1000, /Double)       
+      
+      ;; Use G0_corr = 1 when fixing the beta value!
+      G0_corr            = 1.
+      ;; Correction factor when using a free beta 
+      ;G0_corr            = 10^(2.8709-(1.4267*beta_all[s]))  
+
+      ;; ISRF (Relative to Solar Village)
+      G0_all[s]            = G0_corr*((temperature_all[s]/17.5D)^(4+beta_all[s])) 
+
+      ;;   d. Print the results.
+
+      PRINT, "  tau100 = "        , tau100_all[s],        " [m]"
+      PRINT, "  temperature = " , temperature_all[s], " K"
+      PRINT, "  G0 =  "         , G0_all[s],          " ISRF/ISRF_local"
+      PRINT, "  beta = "        , beta_all[s]
+      PRINT, "  chi2 = "        , chi2_all[s]
+
+  ENDFOR
+
+
+;; 3) Analysis and savings
+;;------------------------
+;;   a. Inspect a couple of fits. 
+
+
+phot_error = [0.051D,0.151D,0.104D,0.10D,0.10D,0.135D,0.10D,0.10D,0.07D,0.07D,0.10D]
+
+;;   d. Savings.
+
+;;Save the General file, with mean results from all sources. Will be used in plotting.
+filexdr = "../Save/BBfit.xdr"
+SAVE, FILE=filexdr,  $
+nmaps,               $
+temperature_all,     $
+beta_all,            $
+tau100_all,           $
+G0_all,              $
+FIR_all,             $
+Snu_all
+PRINT, " - File "+filexdr+" has been written."
+
+END
