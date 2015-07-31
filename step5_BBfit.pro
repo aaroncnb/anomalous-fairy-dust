@@ -50,13 +50,13 @@ chi2_all                  = DBLARR(ns)
 FIR_all                    = DBLARR(ns)
 tau100_all              = DBLARR(ns)
 Snu_all                   = DBLARR(nmaps,ns)
-weights                  = DBLARR(nmaps,ns)
+weights_all                  = DBLARR(nmaps,ns)
 
 ;;List of the wavelengths of the bands used:
 wave        =  [12.D,25.D,60.D,65.D,90.D,100.D,140.D,160.D,345.D,550.D]
 
 ;;Total photometric errors for each of the maps used
-phot_error = [0.051D,0.151D,0.104D,0.10D,0.10D,0.135D,0.10D,0.10D,0.07D,0.07D,0.10D]
+phot_err = [0.051D,0.151D,0.104D,0.10D,0.10D,0.135D,0.10D,0.10D,0.07D,0.07D,0.10D]
 
 
 ;; Take the flux @ a given band from the HAPER result-array, "fd_all"
@@ -64,9 +64,9 @@ Snu_all     = fd_all
 
 ;;Use the flux-density errors as the weights for this greybody fitting routine. See Planck Coll. Int. Results XV (2013, Clive Dickinson et al.): They add the RMS uncertainty from the background annulus to the photometric errors of the maps.
 
-FOR, serr = 0, ns-1 DO BEGIN
-     weights_all[*,serr]    =  fd_err_all[*,serr] + (phot_err[*]*Snu_all[*,serr]
-END FOR
+FOR serr = 0, ns-1 DO BEGIN
+     weights_all[*,serr]    =  fd_err_all[serr,*] + (phot_err[*]*Snu_all[*,serr])
+ENDFOR
 
 ;;Exclude the stochastic and small-grain dominated bands from the fitting:
      ;;  This just means that we'll fit a blackbody only to the bands that are dominated by blackbody radiation (i.e., the far-infrared bands longer than 65 um)
