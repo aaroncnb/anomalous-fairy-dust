@@ -21,27 +21,25 @@ import numpy as np
 
 ########0.2) Read in the HEALPix Maps Before starting the LOOP OF ALL REGIONS
 print "Reading HEALPix Maps"
-map12 = hp.read_map("../Data/im_iras12.fits", nest = True)
-map25 = hp.read_map("../Data/im_iras25.fits", nest = True)
-map60 = hp.read_map("../Data/im_iras60.fits", nest = True)
-map100 = hp.read_map("../Data/healpix10/im_akari65.fits", nest = True)
-map90 = hp.read_map("../Data/healpix10/im_akari90.fits", nest = True)
-map140 = hp.read_map("../Data/healpix10/im_akari140.fits", nest = True)
-map160 = hp.read_map("../Data/healpix10/im_akari160.fits", nest = True)
-map857 = hp.read_map("../Data/im_planck857.fits", nest = True)
-map545 = hp.read_map("../Data/im_planck545.fits", nest = True)
+hdlist3 = fits.open('../Data/im_irac1.fits')
+hdlist3 = fits.open('../Data/im_irac2.fits')
+hdlist3 = fits.open('../Data/im_irac3.fits')
+hdlist3 = fits.open('../Data/im_irac4.fits')
+hdlist3 = fits.open('../Data/im_mips24.fits')
+hdlist3 = fits.open('../Data/im_mips70.fits')
+hdlist3 = fits.open('../Data/im_mips160.fits')
 print "Finished reading HEALPix Maps"
        
 
 ## Read in the file containing all of the data about the Planck XV 2013 AME regions.
-AME = np.genfromtxt('../Data/AME.txt', delimiter =',')
+AME = np.genfromtxt('../Data/gibs_apertures.txt', delimiter =',')
 
 
 ## 1.1 Circular Aperture Photemotery on the HEALPix Maps (with an annulus for background subtraction):
 
-glon  = AME[:,1]
-glat  = AME[:,2]
-NROIs = len(AME[:,1])
+glon  = gibs[:,1]
+glat  = gibs[:,2]
+NROIs = len(gibs[:,1])
 Nband = len(bands)
 
 positions = SkyCoord(l=glon * units.deg, b=glat * units.deg,
@@ -57,14 +55,14 @@ annulus_apertures = SkyCircularAnnulus(positions, r_in=bgSizeInner * units.arcmi
 ## get pixels in aperture
 #First step in doing this is to get our coordinates into a format that "ang2vec" can understand.
 
-phi = glon * np.pi / 180.
+#phi = glon * np.pi / 180.
 
 
-theta = (np.pi / 2.)- (glat * np.pi / 180.)
+#theta = (np.pi / 2.)- (glat * np.pi / 180.)
 
 #ang2vec converts a spherical angle to a position vector, but it needs phi and theta as co-lat and co-lon
 
-vec0 = hp.ang2vec(theta, phi)    
+#vec0 = hp.ang2vec(theta, phi)    
 
 
 #query_disc was recently translated into python from the IDL Healpix package. It isn't mentioned in the Healpy documentation, but it does exist.
@@ -73,38 +71,38 @@ vec0 = hp.ang2vec(theta, phi)
 
 #Start the list making...
 
-listpix_r1 = []
-listpix_r2 = []
-listpix_r3 = []
+#listpix_r1 = []
+#listpix_r2 = []
+#listpix_r3 = []
 
-for i in range(0,98):
-    listpix_r1.append(hp.query_disc(nside, vec0[i], aper_inner_radius/60., True, True))
-    listpix_r2.append(hp.query_disc(nside, vec0[i], aper_outer_radius1/60., True, True))
-    listpix_r3.append(hp.query_disc(nside, vec0[i], aper_outer_radius2/60., True, True))
+#for i in range(0,98):
+#    listpix_r1.append(hp.query_disc(nside, vec0[i], aper_inner_radius/60., True, True))
+#    listpix_r2.append(hp.query_disc(nside, vec0[i], aper_outer_radius1/60., True, True))
+#    listpix_r3.append(hp.query_disc(nside, vec0[i], aper_outer_radius2/60., True, True))
     
     
 #find pixels in the annulus (between outerradius1 and outeradius2) 
-    outerpix_all = [listpix_r2,listpix_r3]
-    outerpix_all.sort()
+#    outerpix_all = [listpix_r2,listpix_r3]
+#    outerpix_all.sort()
 #    outerpix = -1L
-    for i in range(0, nouterpix2-1):
-        temp = np.where(listpix_r2 = listpix_r3[i])
-        if (temp[0] < 0):
-               outerpix = [outerpix,outerpix2[i]]
-    outerpix = outerpix[1:*]
-    nouterpix = len(outerpix)
+#    for i in range(0, nouterpix2-1):
+#        temp = np.where(listpix_r2 = listpix_r3[i])
+#        if (temp[0] < 0):
+#               outerpix = [outerpix,outerpix2[i]]
+#    outerpix = outerpix[1:*]
+#    nouterpix = len(outerpix)
 
 ##Here's where the photometry actually happenss, so we'll start the for loop over all the wavebands
-for i in range(0, Nbands):
-       data = hmaps[i]
-       rawflux_table = ap(data, apertures, method ="exact")
-       bkgflux_table = ap(data, annulus_apertures, method ="exact")
-       phot_table = hstack([rawflux_table, bkgflux_table], table_names=['raw', 'bkg'])
-       bkg_mean = phot_table['aperture_sum_bkg'] / annulus_apertures.area()
-       bkg_sum = bkg_mean * apertures.area()
-       final_sum = phot_table['aperture_sum_raw'] - bkg_sum
-       phot_table['residual_aperture_sum'] = final_sum
-       print(phot_table['residual_aperture_sum'])
+#for i in range(0, Nbands):
+#       data = hmaps[i]
+#       rawflux_table = ap(data, apertures, method ="exact")
+#       bkgflux_table = ap(data, annulus_apertures, method ="exact")
+#       phot_table = hstack([rawflux_table, bkgflux_table], table_names=['raw', 'bkg'])
+#       bkg_mean = phot_table['aperture_sum_bkg'] / annulus_apertures.area()
+#       bkg_sum = bkg_mean * apertures.area()
+#       final_sum = phot_table['aperture_sum_raw'] - bkg_sum
+#       phot_table['residual_aperture_sum'] = final_sum
+#       print(phot_table['residual_aperture_sum'])
 
 
 
