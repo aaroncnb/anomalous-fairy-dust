@@ -42,15 +42,40 @@ image7 = hdulist7[0].data
 
 print "Finished reading FITS Maps"
 
-##########0.4) Print the dimensions of the arrays 
+##########0.4) Print the dimensions of the arrays (just in case something funny is happening) 
 
-print(type(image_data))
-print(image_data.shape)
-       
+print(type(image1))
+print(image1.shape)
+print(type(image2))
+print(image2.shape)
+print(type(image3))
+print(image3.shape)
+print(type(image4))
+print(image4.shape)
+print(type(image5))
+print(image5.shape)
+print(type(image6))
+print(image6.shape)
+print(type(image7))
+print(image7.shape)
 
-## Read in the file containing all of the data about the Planck XV 2013 AME regions.
-AME = np.genfromtxt('../Data/gibs_apertures.txt', delimiter =',')
+######### 0.5) Now we'll close the FITS files
 
+hdulist1.close()
+hdulist2.close()
+hdulist3.close()
+hdulist4.close()
+hdulist5.close()
+hdulist6.close()
+hdulist7.close()
+
+########## 0.6) Now we'll have astropy show us the images we've just loaded, so we know we're looking at the right space.
+
+plt.imshow(image1, cmap='gray')
+plt.colorbar()
+
+# To see more color maps
+# http://wiki.scipy.org/Cookbook/Matplotlib/Show_colormaps
 
 ## 1.1 Circular Aperture Photemotery on the HEALPix Maps (with an annulus for background subtraction):
 
