@@ -8,7 +8,6 @@
 ##*****************************************************************************
 ###Let's import the healpix and numpy packages needed for this analysis...
 
-
 from astropy import units
 from astropy.coordinates import SkyCoord
 
@@ -19,16 +18,34 @@ from photutils import aperture_photometry
 import healpy as hp
 import numpy as np
 
-########0.2) Read in the HEALPix Maps Before starting the LOOP OF ALL REGIONS
-print "Reading HEALPix Maps"
-hdlist3 = fits.open('../Data/im_irac1.fits')
-hdlist3 = fits.open('../Data/im_irac2.fits')
-hdlist3 = fits.open('../Data/im_irac3.fits')
-hdlist3 = fits.open('../Data/im_irac4.fits')
-hdlist3 = fits.open('../Data/im_mips24.fits')
-hdlist3 = fits.open('../Data/im_mips70.fits')
-hdlist3 = fits.open('../Data/im_mips160.fits')
-print "Finished reading HEALPix Maps"
+########0.2) Read in the FITS 
+
+print "Reading FITS Maps"
+
+hdulist1 = fits.open('../Data/gibson/im_irac1.fits')
+hdulist2 = fits.open('../Data/gibson/im_irac2.fits')
+hdulist3 = fits.open('../Data/gibson/im_irac3.fits')
+hdulist4 = fits.open('../Data/gibson/im_irac4.fits')
+hdulist5 = fits.open('../Data/gibson/im_mips24.fits')
+hdulist6 = fits.open('../Data/gibson/im_mips70.fits')
+hdulist7 = fits.open('../Data/gibson/im_mips160.fits')
+
+#########0.3)  Save the FITS HDUs as nummpy arrays (like you would in IDL)
+
+image1 = hdulist1[0].data
+image2 = hdulist2[0].data
+image3 = hdulist3[0].data
+image4 = hdulist4[0].data
+image5 = hdulist5[0].data
+image6 = hdulist6[0].data
+image7 = hdulist7[0].data
+
+print "Finished reading FITS Maps"
+
+##########0.4) Print the dimensions of the arrays 
+
+print(type(image_data))
+print(image_data.shape)
        
 
 ## Read in the file containing all of the data about the Planck XV 2013 AME regions.
