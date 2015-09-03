@@ -5,7 +5,7 @@ im
 import numpy as np
 import healpy as hp
 
-fwhm =  60 # Should be given in radians!
+fwhm =  0.17  # Should be given in radians!
 
 ##### 0.1) Read in the HEALPix Maps Before starting the LOOP OF ALL REGIONS
 
