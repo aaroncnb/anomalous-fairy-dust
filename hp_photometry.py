@@ -246,25 +246,40 @@ print R
 ###into python (rather than relpying ont the DustEM IDL wrapper)
 
 ####Make a dictionary to hold the map frequencies and names:
+#####'BandName':FREQ
 
-
-
-
-
+filters = {
+	'LFI1':[30,'filter_lfi30.txt']
+	'LFI2':[44,filter_lfi44.txt']
+	'LFI3':[70,filter_lfi70.txt']
+	'LFI4':[100,filter_lfi100.txt']
+	'HFI1':[143,filter_hfi143.txt']
+	'HFI2':[217,filter_hfi217.txt']
+	'HFI3':[353,filter_hfi353.txt']
+	'HFI4':[545,filter_hfi545.txt']
+	'HFI5':[857,filter_hfi857.txt']
+	'AKARI6':[1874,filter_N160.txt']
+	'AKARI5':[2141,filter_WL.txt']
+	'IRAS4':[2998,filter_iras100.txt']
+	'AKARI4'[3331',filter_WS.txt']
+	'AKARI3':[4612,filter_N60.txt']
+	'IRAS3':[4997',filter_iras60.txt']
+	'IRAS2':[11992,
+	'AKARI2':[16655,
+	'IRAS1':[24983,
+	'AKARI1':[33310}
+	
 cc=dblarr(Nbands)
 
 
 
 FOR i=0L,Nbands-1 DO BEGIN
-  iinstru=where(inst_tags EQ instrus(i),countinstr)
-  IF countinstr EQ 0 THEN stop
   st=(*!dustem_filters).(iinstru)
-stop("")
   ii=(where(st.filter_names EQ filter_names(i)))(0)
   CASE strupcase(fluxconvs(i)) OF
     'NUINU=CSTE': BEGIN
       spec_int=interpol(spec2,wavein2,*(st.use_wavelengths(ii)))
-      num=integral(*(st.use_wavelengths(ii)),spec_int*(*(st.use_transmissions(ii)))/(*(st.use_wa$
+      num=integral(*(st.us_ewavelengths(ii)),spec_int*(*(st.use_transmissions(ii)))/(*(st.use_wa$
       den=integral(*(st.use_wavelengths(ii)),(*(st.use_transmissions(ii)))/(*(st.use_wavelengths$
       spec0=interpol(spec2,wavein2,st.central_wavelengths(ii))
       cc(i)=num/den/spec0*(st.central_wavelengths(ii))
