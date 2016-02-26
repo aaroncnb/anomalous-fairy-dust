@@ -3,7 +3,7 @@
 
 # In[2]:
 
-get_ipython().magic(u'matplotlib inline')
+#get_ipython().magic(u'matplotlib inline')
 #from IPython.external import mathjax; mathjax.install_mathjax()
 import matplotlib
 import numpy as np
@@ -68,183 +68,35 @@ fd_err_all = idl.ev('fd_err_all')
 #Set the "figure number" -
 #plt.figure(1)
 
-##Then for each plot, we change the sub'plot number: We'll plot IRC 9 micron vs. AME first...
-#plt.subplot(151)
-#print fd_all[0]
-plt.plot(fd_all[0],fd_all[1],'ro')
-#Set the axes scaling, i.e. linear or log
-plt.yscale('log')
-plt.xscale('log')
-#Throw some text on those axes...
-plt.xlabel('AME')
-plt.ylabel('AKARI 9 Micron')
-plt.title('Comparison of AME with IR Bands: 9 micron')
-plt.grid(True)
-plt.show()
+print 'Comparison of AME with IR Bands: Starting with 9 micron'
 R = np.corrcoef(fd_all[0],fd_all[1])
 print R
 
-###Now the second plot: AME vs 65
-#plt.subplot(152)
-plt.plot(fd_all[0],fd_all[2],'ro')
-#Set the axes scaling, i.e. linear or log
-plt.yscale('log')
-plt.xscale('log')
-#Throw some text on those axes...
-plt.xlabel('AME Flux Density')
-plt.ylabel('AKARI 65 Micron Flux Density')
-plt.title('Comparison of AME with IR Bands: 65 micron')
-plt.grid(True)
-plt.show()
 R = np.corrcoef(fd_all[0],fd_all[2])
 print R
 
-### AME vs 90
-#plt.subplot(153)
-plt.plot(fd_all[0],fd_all[3],'ro')
-#Set the axes scaling, i.e. linear or log
-plt.yscale('log')
-plt.xscale('log')
-#Throw some text on those axes...
-plt.xlabel('AME Flux Density')
-plt.ylabel('AKARI 90 Micron Flux Density')
-plt.title('Comparison of AME with IR Bands: 90 micron')
-plt.grid(True)
-plt.show()
 R = np.corrcoef(fd_all[0],fd_all[3])
 print R
 
-### AME vs 140
-#plt.subplot(154)
-plt.plot(fd_all[0],fd_all[4],'ro')
-#Set the axes scaling, i.e. linear or log
-plt.yscale('log')
-plt.xscale('log')
-#Throw some text on those axes...
-plt.xlabel('AME Flux Density')
-plt.ylabel('AKARI 140 Micron Flux Density')
-plt.title('Comparison of AME with IR Bands: 140 micron')
-plt.grid(True)
-plt.show()
 R = np.corrcoef(fd_all[0],fd_all[4])
 print R
 
-### AME vs 160
-#plt.subplot(155)
-plt.plot(fd_all[0],fd_all[5],'ro')
-#Set the axes scaling, i.e. linear or log
-plt.yscale('log')
-plt.xscale('log')
-#Throw some text on those axes...
-plt.xlabel('AME Flux Density')
-plt.ylabel('AKARI 160 Micron Flux Density')
-plt.title('Comparison of AME with IR Bands: 160 micron')
-plt.grid(True)
-plt.show()
-R = np.corrcoef(fd_all[0],fd_all[5])
-print R
-
-### AME vs 857
-#plt.subplot(155)
-plt.plot(fd_all[0],fd_all[6],'ro')
-#Set the axes scaling, i.e. linear or log
-plt.yscale('log')
-plt.xscale('log')
-#Throw some text on those axes...
-plt.xlabel('AME Flux Density')
-plt.ylabel('PLANCK 857 Micron Flux Density')
-plt.title('Comparison of AME with IR Bands: 857 GHz')
-plt.grid(True)
-plt.show()
 R = np.corrcoef(fd_all[0],fd_all[6])
 print R
 
-### AME vs 545
-#plt.subplot(155)
-plt.plot(fd_all[0],fd_all[7],'ro')
-#Set the axes scaling, i.e. linear or log
-plt.yscale('log')
-plt.xscale('log')
-#Throw some text on those axes...
-plt.xlabel('AME Flux Density')
-plt.ylabel('PLANCK 545 Micron Flux Density')
-plt.title('Comparison of AME with IR Bands: 545 GHz')
-plt.grid(True)
-plt.show()
 R = np.corrcoef(fd_all[0],fd_all[7])
 print R
 
-### AME vs 353
-#plt.subplot(155)
-plt.plot(fd_all[0],fd_all[8],'ro')
-#Set the axes scaling, i.e. linear or log
-plt.yscale('log')
-plt.xscale('log')
-#Throw some text on those axes...
-plt.xlabel('AME Flux Density')
-plt.ylabel('PLANCK 353 GHz Flux Density')
-plt.title('Comparison of AME with IR Bands: 353 GHz')
-plt.grid(True)
-plt.show()
 R = np.corrcoef(fd_all[0],fd_all[8])
 print R
 
-### AME vs 217
-#plt.subplot(155)
-plt.plot(fd_all[0],fd_all[9],'ro')
-#Set the axes scaling, i.e. linear or log
-plt.yscale('log')
-plt.xscale('log')
-#Throw some text on those axes...
-plt.xlabel('AME Flux Density')
-plt.ylabel('PLANCK 217 GHz Flux Density')
-plt.title('Comparison of AME with IR Bands: 217 GHz')
-plt.grid(True)
-plt.show()
 R = np.corrcoef(fd_all[0],fd_all[9])
 print R
 
-### AME vs 143
-#plt.subplot(155)
-plt.plot(fd_all[0],fd_all[10],'ro')
-#Set the axes scaling, i.e. linear or log
-plt.yscale('log')
-plt.xscale('log')
-#Throw some text on those axes...
-plt.xlabel('AME Flux Density')
-plt.ylabel('PLANCK 143 GHz Flux Density')
-plt.title('Comparison of AME with IR Bands: 143 GHz')
-plt.grid(True)
-plt.show()
 R = np.corrcoef(fd_all[0],fd_all[10])
 print R
 
-### AME vs 100
-#plt.subplot(155)
-plt.plot(fd_all[0],fd_all[11],'ro')
-#Set the axes scaling, i.e. linear or log
-plt.yscale('log')
-plt.xscale('log')
-#Throw some text on those axes...
-plt.xlabel('AME Flux Density')
-plt.ylabel('PLANCK 100 GHz Flux Density')
-plt.title('Comparison of AME with IR Bands: 100 GHz')
-plt.grid(True)
-plt.show()
 R = np.corrcoef(fd_all[0],fd_all[11])
 print R
 
-
-# In[ ]:
-
-##############################################
-#############Blackbody fitting?###############
-##############################################
-
-##Since we want to get away from IDL as much as possible,
-###let' at least put the simple steps of the color-correctin
-###into python (rather than relpying ont the DustEM IDL wrapper)
-
-####Make a dictionary to hold the map frequencies and names:
-#####'BandName':FREQ
 
