@@ -1,55 +1,13 @@
-pro multiepoch_photometry_akari, inputlist, maplist=maplist, radius=radius, galactic=galactic, decimal=decimal, rinner=rinner, router=router
+def healpix_phot(targetlist, maplist, radius, galactic=True, decimal=True, rinner=2.0, router=3.0)
+    ##Here is the "observation data structure", which just means "a bunch of details 
+    ## about the different all-sky data sources which could be used here.
+    freqlist = ['30','44','70','100','143','217','353','545','857','1874','2141','2998','3331','4612','4997','11992','16655','24983','33310']
+    freqval = [28.405889,44.072241,70.421396,100.,143.,217.,353.,545.,857.,1874.,2141.,2998.,3331.,4612.,4997.,11992.,16655.,24983.,33310.]
+    fwhmlist =     [33.1587,28.0852,13.0812,9.88,7.18,4.87,4.65,4.72,4.39,0.86,0.86,4.3,0.86,0.86,4,3.8,0.86,3.8,0.86] ; fwhm in arcminutes
+    band_names =   ["iras60","akari65","akari90","iras100","akari140","akari160","planck857", "planck545"]
+    band_centers = [ 60e-6,    65e-6,    90e-6,   100e-6,   140e-6,    160e-6,    350e-6,      550e-6]
 
-; By default this code takes as input a list of source coordinates 
-; which are stored in inputlist with the following form:
-; sname, RAHR, RAMIN, RASEC, DECDEG, DECMIN, DECSEC
-;  
-; However, if the keyword decimal is set, then the assumed format is:
-; sname, RA, DEC - in decimal degrees. 
-;
-; Furthermore if the keyword galactic is set, then the assumed format is:
-; sname, GLON, GLAT - in decimal degrees.
-;
-;
-; INPUTS
-; inputlist - CSV (or other tabular format) file containing the list of target sources along wiht coordinates (can be RA and DEC or GLON GLAT)
-; maplist - file containing names of input HEALPix maps
-;     freq [GHz] is taken from the FREQ header keyword in the extension
-;     units string is taken from the TUNIT1 header keyword in the
-;     extension
-; Note: actual frequency and FWHM parameters are from the RIMO for DX9
-; radius - radius of the source aperture in arcmin, if 0 then set to
-;          Planck FWHM for this band.
-; galactic - see above.
-; rinner - inner radius of background annulus in units of <radius>,
-;          defaults to 2.0.
-; router - outer radius of background annulus in units of <radius>,
-;          defaults to 3.0.
 
-; OUTPUTS
-; This procedure creates an output file named <inputlist>.photo which
-; contains the list of the all-sky maps used and the aperture photometry
-; results for each source.
-; 
-; The flux density is given in Jy.  It is measured in an aperture of i
-; radius = FWHM if radius is not specified.
-;
-; The data columns presented in the output file are:
-;    Source_Name  Map_number  GLON   GLAT   Flux (Jy)  Flux_RMS (Jy)   Median_Background_Flux (Jy)
-;
-; HISTORY
-; 22-July-2015 A. Bell              Many changes allowing AKARI and IRAS HEALPix maps to be used: 
-;;;;;;;;;;;; documented on https://github.com/aaroncnb/anomalous-fairy-dust.git (Check for latest version!)
-; 10-Apr-2013  P. McGehee     Corrected ten() -> tenv() error, added /decimal keyword.
-; 11-Feb-2013  P. McGehee     Change of input arguments.
-; 20-Sep-2012  P. McGehee     Ingested into IPAC SVN, formatting changes
-;------------------------------------------------------------
-    freqlist = ['30','44','70','100','143','217','353','545','857','1874','2141','2998','3331','4612','4997','11992','24983']
-    freqval = [28.405889,44.072241,70.421396,100,143,217,353,545,857.,1874.,2141.,2998.,3331.,4612.,4997.,11992.,24983.]
-    fwhmlist = [33.1587,28.0852,13.0812,9.88,7.18,4.87,4.65,4.72,4.39,4.3,4.0,3.8,0.62,0.65,3.8,0.97,1.02] ; fwhm in arcminutes
-
-    if (not keyword_set(rinner)) then rinner = 2.0
-    if (not keyword_set(router)) then router = 3.0
 
     k0 = 1.0 & k1 = rinner & k2 = router 
     apcor = ((1 - (0.5)^(4*k0^2)) - $ 
@@ -76,8 +34,8 @@ pro multiepoch_photometry_akari, inputlist, maplist=maplist, radius=radius, gala
 
     readcol, maplist, format='(A)', fn
     nmaps = n_elements(fn)
-        fd_all = DBLARR[ns,nmaps]
-        fd_err_all = DBLARR[ns,nmaps]
+        fd_all = DBLARR(98,16)
+        fd_err_all = DBLARR(98,16)
     openw,1,file_basename(inputlist+'.photo'),width=200
 
     if (not keyword_set(radius)) then begin
@@ -112,10 +70,28 @@ pro multiepoch_photometry_akari, inputlist, maplist=maplist, radius=radius, gala
             exit
         endelse
 
-        for ct=0L,ns-1 do begin
-            haperflux, fn[ct2], currfreq, fwhm, glon[ct], glat[ct], $
-                1.*radval, rinner*radval, router*radval, units, $
-                fd, fd_err, fd_bg, /nested,/noise_mod
+        FOR ct=0L,ns-1 DO BEGIN
+         
+   ;;;;; Let's add an automatic GALACTIC -> CELSTIAL coord conversion
+   ;;;;; In case the target list is given in GAL, but the map
+   ;;;;; is given in CELESTIAL
+             IF (currfreq EQ 33310.) || (currfreq EQ 16655.) THEN BEGIN
+                  
+                  EULER, glon[ct], glat[ct], ra, dec,  SELECT = 2    
+  
+                  haperflux, fn[ct2], currfreq, fwhm, ra, dec, $
+                      1.*radval, rinner*radval, router*radval, units, $
+                      fd, fd_err, fd_bg, /nested,/noise_mod
+
+             ENDIF ELSE BEGIN
+
+                  haperflux, fn[ct2], currfreq, fwhm, glon[ct], glat[ct], $
+                      1.*radval, rinner*radval, router*radval, units, $
+                      fd, fd_err, fd_bg, /nested,/noise_mod
+        
+             ENDELSE
+
+
 
             if (finite(fd_err) eq 0) then begin
                 fd = -1
@@ -135,5 +111,11 @@ pro multiepoch_photometry_akari, inputlist, maplist=maplist, radius=radius, gala
         endfor
     endfor
 
+  save, /variables, filename='multiepoch_photometry_akari_.sav'
+  save, filename='multiepoch_photometry_akari_.sav'
+
     close,1
-end
+
+
+END
+
