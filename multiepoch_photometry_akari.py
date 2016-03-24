@@ -1,17 +1,4 @@
-%matplotlib inline
-#from IPython.external import mathjax; mathjax.install_mathjax()
-import matplotlib
-import numpy as np
-import matplotlib.pyplot as plt
-import healpy as hp
-import healpy.projector as pro
-import pyfits
-import pidly
-idl = pidly.IDL()
-
-
-
-def healpix_phot(targetlist, maplist, radius, galactic=True, decimal=True, rinner=2.0, router=3.0)
+def healpix_phot(targetlist, maplist, radius, galactic=True, decimal=True, rinner=2.0, router=3.0):
     ##Here is the "observation data structure", which just means "a bunch of details 
     ## about the different all-sky data sources which could be used here.
     freqlist = ['30','44','70','100','143','217','353','545','857','1874','2141','2998','3331','4612','4997','11992','16655','24983','33310']
@@ -19,19 +6,19 @@ def healpix_phot(targetlist, maplist, radius, galactic=True, decimal=True, rinne
     fwhmlist =     [33.1587,28.0852,13.0812,9.88,7.18,4.87,4.65,4.72,4.39,0.86,0.86,4.3,0.86,0.86,4,3.8,0.86,3.8,0.86] ; fwhm in arcminutes
     band_names =   ["iras60","akari65","akari90","iras100","akari140","akari160","planck857", "planck545"]
     band_centers = [ 60e-6,    65e-6,    90e-6,   100e-6,   140e-6,    160e-6,    350e-6,      550e-6]
-
+    idl = pidly.IDL()
 
 
     k0 = 1.0 
     k1 = rinner 
     k2 = router 
-    apcor = ((1 - (0.5)^(4*k0^2)) - \ ((0.5)^(4*k1^2) - (0.5)^(4*k2^2)))^(-1)
+    apcor = ((1 - (0.5)^(4*k0^2))-((0.5)^(4*k1^2) - (0.5)^(4*k2^2)))^(-1)
   
     # 'galactic' overrules 'decimal' 
-    if (keyword_set(galactic)):
+    if (galactic==True):
         np.genfromtxt(inputlist, names= 'sname,glon,glat')
         euler, glon, glat, ra, dec,2
-    elif (keyword_set(decimal)):
+    elif (decimal==True):
         np.genfromtxt(inputlist, names= 'sname,ra,dec')
         euler,ra,dec,glon,glat,1
     else:
@@ -48,8 +35,8 @@ def healpix_phot(targetlist, maplist, radius, galactic=True, decimal=True, rinne
 
     fn = np.genfromtxt(maplist)
     nmaps = len(fn)
-        fd_all = np.zeros(98,16)
-        fd_err_all = np.zeros(98,16)
+    fd_all = np.zeros(98,16)
+    fd_err_all = np.zeros(98,16)
     #openw,1,file_basename(inputlist+'.photo'),width=200
 
     #if radius == None:
@@ -77,9 +64,10 @@ def healpix_phot(targetlist, maplist, radius, galactic=True, decimal=True, rinne
         cnt = len(idx)
         if (cnt > 0):
             currfreq = freqval[idx[0]]
-            if (radius = None)):
+            if (radius == None):
                 radval = fwhmlist[idx[0]]
-            else radval = radius
+            else:
+                radval = radius
         else:
             print 'Invalid frequency ', freq, ' in ', fn[ct2]
             exit()
@@ -89,7 +77,7 @@ def healpix_phot(targetlist, maplist, radius, galactic=True, decimal=True, rinne
     ##### Let's add an automatic GALACTIC -> CELSTIAL coord conversion
     ##### In case the target list is given in GAL, but the map
     ##### is given in CELESTIAL
-             if (currfreq EQ 33310.) or (currfreq EQ 16655.):
+             if (currfreq == 33310.) or (currfreq == 16655.):
                   
                 idl.pro('EULER', glon[ct], glat[ct], ra, dec,  SELECT = 2)
   
