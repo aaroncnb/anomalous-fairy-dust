@@ -27,7 +27,7 @@ def healpix_phot(targetlist, maplist, radius, galactic=True, decimal=True, rinne
     k2 = router 
     apcor = ((1 - (0.5)^(4*k0^2)) - \ ((0.5)^(4*k1^2) - (0.5)^(4*k2^2)))^(-1)
   
-# 'galactic' overrules 'decimal' 
+    # 'galactic' overrules 'decimal' 
     if (keyword_set(galactic)):
         np.genfromtxt(inputlist, names= 'sname,glon,glat')
         euler, glon, glat, ra, dec,2
@@ -50,52 +50,52 @@ def healpix_phot(targetlist, maplist, radius, galactic=True, decimal=True, rinne
     nmaps = len(fn)
         fd_all = np.zeros(98,16)
         fd_err_all = np.zeros(98,16)
-    openw,1,file_basename(inputlist+'.photo'),width=200
+    #openw,1,file_basename(inputlist+'.photo'),width=200
 
-    if (not keyword_set(radius)):
-        printf,1,'; A multiplicative aperture correction factor of ',apcor,' has been applied to the flux densities'
-        printf,1, '; assuming that the source is a point source. Flux densities are in Jy.'
-    elif:
-        printf,1,';No aperture correction factor has been applied. Flux densities are in Jy.'
+    #if radius == None:
+    #    printf 1,'; A multiplicative aperture correction factor of ',apcor,' has been applied to the flux densities'
+    #    printf 1, '; assuming that the source is a point source. Flux densities are in Jy.'
+    #elif:
+    #    printf 1,';No aperture correction factor has been applied. Flux densities are in Jy.'
 
-    printf,1, ';'
-    printf,1, ';Output format:'
-    printf,1, '; Source_Name  Map_number  GLON   GLAT   Flux (Jy) Flux_RMS (Jy) Median_Background_Flux (Jy)'
-    printf, 1, ';'
-    printf, 1, '; Map List:'
-    
-    for i = 0, nmaps-1:
-        printf, 1, '; Map #',i, fn[i]
-    
-    printf, 1, ';'
-
+    #printf 1, ';'
+    #printf 1, ';Output format:'
+    #printf 1, '; Source_Name  Map_number  GLON   GLAT   Flux (Jy) Flux_RMS (Jy) Median_Background_Flux (Jy)'
+    #printf  1, ';'
+    #printf  1, '; Map List:'
+    # Make a header-legend that says what order the maps were processed:
+    #for i = 0, nmaps-1:
+    #    printf, 1, '; Map #',i, fn[i]
+    #
+    #printf, 1, ';'
+    # Start the actual processing: Read-in the maps.
     for ct2 in range(0,nmaps-1):
-        xtmp = mrdfits(fn[ct2], 1, hdr1)
-        freq = strtrim(sxpar(hdr1, 'FREQ'),2 )
-        units = strtrim(sxpar(hdr1, 'TUNIT1'),2 )
-        idx = where(freqlist eq freq, cnt)
-        if (cnt gt 0):
+        xtmp = pyfits.open(fn[ct2])
+        freq = xtmp[1].header['FREQ'] #May need to "trim" off the leading space from the FREQ keyword value
+        units = xtmp[1].header['TUNIT1'] # Double-check which header index is correct (i.e. [1] or [0]
+        idx = np.where(freqlist == freq)
+        cnt = len(idx)
+        if (cnt > 0):
             currfreq = freqval[idx[0]]
-            if (not keyword_set(radius)):
+            if (radius = None)):
                 radval = fwhmlist[idx[0]]
             else radval = radius
         else:
             print 'Invalid frequency ', freq, ' in ', fn[ct2]
-            exit
+            exit()
         
-
-        for (ct=0L,ns-1): 
+        for ct in range(0,ns-1): 
          
-   ##### Let's add an automatic GALACTIC -> CELSTIAL coord conversion
-   ##### In case the target list is given in GAL, but the map
-   ##### is given in CELESTIAL
+    ##### Let's add an automatic GALACTIC -> CELSTIAL coord conversion
+    ##### In case the target list is given in GAL, but the map
+    ##### is given in CELESTIAL
              if (currfreq EQ 33310.) or (currfreq EQ 16655.):
                   
-                  EULER, glon[ct], glat[ct], ra, dec,  SELECT = 2    
+                idl.pro('EULER', glon[ct], glat[ct], ra, dec,  SELECT = 2)
   
-                  haperflux, fn[ct2], currfreq, fwhm, ra, dec, $
-                      1.*radval, rinner*radval, router*radval, units, $
-                      fd, fd_err, fd_bg, /nested,/noise_mod
+                idl.pro('haperflux', fn[ct2], currfreq, fwhm, ra, dec, \
+                      1.*radval, rinner*radval, router*radval, units, \
+                      fd, fd_err, fd_bg, /nested,/noise_mod)
 
              else:
                 idl.pro('haperflux', fn[ct2], currfreq, fwhm, glon[ct], glat[ct], \
@@ -103,25 +103,23 @@ def healpix_phot(targetlist, maplist, radius, galactic=True, decimal=True, rinne
                       fd, fd_err, fd_bg, /nested,/noise_mod)
         
 
-            if (finite(fd_err) eq 0):
+            if (np.isfinite(fd_err) == False):
                 fd = -1
                 fd_err = -1
             elif:
-                if not keyword_set(radius) then begin
+                if radius==None:
                     fd = fd*apcor
                     fd_err = fd_err*apcor
 
   ##########Let's change this next line so that it puts the data into a structure I can use for the blackbody fitting,
   ##########rather than a huge list of photometry results
-            printf,1,sname[ct],ct2,glon[ct],glat[ct],fd,fd_err,fd_bg,format='(A18,X,I2,X,F12.7,X,F12.7,X,E11.3,X,E11.3,X,E11.3)'
-            fd_all[ct,ct2] = fd
-            fd_err_all[ct,ct2] = fd_err
-        endfor
-    endfor
+            #printf,1,sname[ct],ct2,glon[ct],glat[ct],fd,fd_err,fd_bg,format='(A18,X,I2,X,F12.7,X,F12.7,X,E11.3,X,E11.3,X,E11.3)'
+            #fd_all[ct,ct2] = fd
+            #fd_err_all[ct,ct2] = fd_err
+        
+    
 
-  save, /variables, filename='multiepoch_photometry_akari_.sav'
-  save, filename='multiepoch_photometry_akari_.sav'
+  #save, /variables, filename='multiepoch_photometry_akari_.sav'
+  #save, filename='multiepoch_photometry_akari_.sav'
 
-    close,1
-
-
+    #close,1
