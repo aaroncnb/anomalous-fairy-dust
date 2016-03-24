@@ -81,14 +81,12 @@ def healpix_phot(targetlist, maplist, radius, galactic=True, decimal=True, rinne
                   
                 idl.pro('EULER', glon[ct], glat[ct], ra, dec,  SELECT = 2)
   
-                idl.pro('haperflux', fn[ct2], currfreq, fwhm, ra, dec, \
-                      1.*radval, rinner*radval, router*radval, units, \
-                      fd, fd_err, fd_bg, /nested,/noise_mod)
+                idl.pro('haperflux', fn[ct2], currfreq, fwhm, ra, dec, 1.*radval, \
+                        rinner*radval, router*radval, units, fd, fd_err, fd_bg, nested=True, noise_mod=True)
 
              else:
-                idl.pro('haperflux', fn[ct2], currfreq, fwhm, glon[ct], glat[ct], \
-                      1.*radval, rinner*radval, router*radval, units, \
-                      fd, fd_err, fd_bg, /nested,/noise_mod)
+                idl.pro('haperflux', fn[ct2], currfreq, fwhm, glon[ct], glat[ct], 1.*radval, \
+                        rinner*radval, router*radval, units, fd, fd_err, fd_bg, nested = True, noise_mod=True)
         
 
             if (np.isfinite(fd_err) == False):
