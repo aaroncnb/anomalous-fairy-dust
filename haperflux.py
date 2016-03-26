@@ -1,9 +1,9 @@
-def planckcorr, freq
-    h = 6.62606957D-34
+def planckcorr(freq):
+    h = 6.62606957E-34
     k = 1.3806488E-23 
     T = 2.725
     x = h*(freq*1E9)/k/T
-    return (exp(x) - 1)^2/x^2/exp(x) 
+    return (exp(x) - 1)**2/x**2/exp(x) 
 
 def haperflux(inmap, freq, res_arcmin, lon, lat, aper_inner_radius, \
     aper_outer_radius1, aper_outer_radius2, units, fd, fd_err, fd_bg, \
@@ -31,7 +31,7 @@ def haperflux(inmap, freq, res_arcmin, lon, lat, aper_inner_radius, \
     aper_outer_radius2 = float(aper_outer_radius2)
 
     # read in data
-    s = size(inmap,/type)
+    s = np.size(inmap)
 
     if (s == 7):
         hmap,hhead = hp.read_map(inmap, hdu=1) #Check if Ring or Nested is needed
@@ -184,7 +184,7 @@ def haperflux(inmap, freq, res_arcmin, lon, lat, aper_inner_radius, \
 
     for i in range(1L, ncalc):
 
-        IF (dopol == 1):
+        if (dopol == 1):
             column=i
 
 # Get pixel values in inner radius, converting to Jy/pix
@@ -213,32 +213,32 @@ def haperflux(inmap, freq, res_arcmin, lon, lat, aper_inner_radius, \
             Npoints = (pix_area*ninnerpix) / \
                       (1.13*(float(res_arcmin)/60. *np.pi/180.)**2)
             Npoints_outer = (pix_area*nouterpix) / \
-                      (1.13*(float(res_arcmin)/60. *!PI/180.)**2)
+                      (1.13*(float(res_arcmin)/60. *np.pi/180.)**2)
             fd_err = stddev(map[outerpix,column]) * factor * ninnerpix / sqrt(Npoints)
       
 
  # works exactly for white uncorrelated noise only!
-        IF (noise_model == 1):
-            k = !np.pi/2.
+        if (noise_model == 1):
+            k = np.pi/2.
 
-            fd_err = factor * sqrt(float(ninnerpix) + $
-                (k * float(ninnerpix)^2/nouterpix)) * robust_sigma(map[outerpix,column])
-        ENDIF
+            fd_err = factor * sqrt(float(ninnerpix) + \
+                (k * float(ninnerpix)**2/nouterpix)) * robust_sigma(map[outerpix,column])
+        
 
 # if dopol is set, then store the Q estimate the first time only
-        IF (dopol EQ 1 AND i EQ 1) THEN BEGIN
+         if(dopol == 1) and (i == 1):
             fd1 = fd
             fd_err1 = fd_err
             fd_bg1 = fd_bg
-        ENDIF
-    ENDFOR
+        
+    
 
 # if dopol is set, combine Q and U to give PI
-    IF (dopol EQ 1) THEN BEGIN
-        fd = sqrt(fd1^2 +fd^2)
-        fd_err = sqrt( 1./(fd1^2 + fd^2) * (fd1^2*fd_err1^2 + fd^2*fd_err^2))
-        fd_bg = sqrt(fd_bg1^2 + fd_bg^2)
-    ENDIF
+    if (dopol == 1): 
+        fd = sqrt(fd1**2 +fd**2)
+        fd_err = sqrt( 1./(fd1**2 + fd**2) * (fd1**2*fd_err1**2 + fd**2*fd_err** 2))
+        fd_bg = sqrt(fd_bg1**2 + fd_bg**2)
+    
 
 #SKIP1: 
     return
