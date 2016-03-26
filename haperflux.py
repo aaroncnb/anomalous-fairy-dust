@@ -202,30 +202,30 @@ def haperflux(inmap, freq, res_arcmin, lon, lat, aper_inner_radius, \
 
 
 #estimate error based on robust sigma of the background annulus
-        IF (keyword_set(noise_model)) EQ 0 THEN $
-            noise_model = 0 $
-        ELSE noise_model = 1
+        if (noise_model == 0):
+            noise_model = 0
+        noise_model = 1
 
-; new version (2-Dec-2010) that has been tested with simulations for
-; Planck early paper and seems to be reasonable for many applications
+# new version (2-Dec-2010) that has been tested with simulations for
+# Planck early paper and seems to be reasonable for many applications
 
-        IF (noise_model EQ 0) THEN BEGIN 
-            Npoints = (pix_area*ninnerpix) / $
-                      (1.13*(float(res_arcmin)/60. *!PI/180.)^2)
-            Npoints_outer = (pix_area*nouterpix) / $
-                      (1.13*(float(res_arcmin)/60. *!PI/180.)^2)
+        if (noise_model == 0): 
+            Npoints = (pix_area*ninnerpix) / \
+                      (1.13*(float(res_arcmin)/60. *np.pi/180.)**2)
+            Npoints_outer = (pix_area*nouterpix) / \
+                      (1.13*(float(res_arcmin)/60. *!PI/180.)**2)
             fd_err = stddev(map[outerpix,column]) * factor * ninnerpix / sqrt(Npoints)
-        ENDIF
+      
 
-; (works exactly for white uncorrelated noise only!)
-        IF (noise_model EQ 1) THEN BEGIN
-            k = !PI/2.
+ # works exactly for white uncorrelated noise only!
+        IF (noise_model == 1):
+            k = !np.pi/2.
 
             fd_err = factor * sqrt(float(ninnerpix) + $
                 (k * float(ninnerpix)^2/nouterpix)) * robust_sigma(map[outerpix,column])
         ENDIF
 
-; if dopol is set, then store the Q estimate the first time only
+# if dopol is set, then store the Q estimate the first time only
         IF (dopol EQ 1 AND i EQ 1) THEN BEGIN
             fd1 = fd
             fd_err1 = fd_err
@@ -233,7 +233,7 @@ def haperflux(inmap, freq, res_arcmin, lon, lat, aper_inner_radius, \
         ENDIF
     ENDFOR
 
-; if dopol is set, combine Q and U to give PI
+# if dopol is set, combine Q and U to give PI
     IF (dopol EQ 1) THEN BEGIN
         fd = sqrt(fd1^2 +fd^2)
         fd_err = sqrt( 1./(fd1^2 + fd^2) * (fd1^2*fd_err1^2 + fd^2*fd_err^2))
@@ -243,5 +243,4 @@ def haperflux(inmap, freq, res_arcmin, lon, lat, aper_inner_radius, \
 #SKIP1: 
     return
 
-;------------------------------------------------------------
-END
+
