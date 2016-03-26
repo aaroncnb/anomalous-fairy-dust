@@ -12,13 +12,13 @@ def haperflux(inmap, freq, res_arcmin, lon, lat, aper_inner_radius, \
 
 
     #check parameters
-        if len(sys.argvs) > 8:
-            print ''
-            print 'SYNTAX:-'
-            print ''
-            print 'HIDL>haperflux(inmap, freq, res_arcmin, lon, lat, aper_inner_radius, aper_outer_radius1, aper_outer_radius2, units, fd, fd_err, fd_bg,column=column, noise_model=noise_model, /dopol, /nested')
-            print ''
-            exit()
+    if len(sys.argvs) > 8:
+        print ''
+        print 'SYNTAX:-'
+        print ''
+        print 'HIDL>haperflux(inmap, freq, res_arcmin, lon, lat, aper_inner_radius, aper_outer_radius1, aper_outer_radius2, units, fd, fd_err, fd_bg,column=column, noise_model=noise_model, /dopol, /nested)'
+        print ''
+        exit()
     
 
     #set parameters
@@ -39,11 +39,11 @@ def haperflux(inmap, freq, res_arcmin, lon, lat, aper_inner_radius, \
     if (s==4) or (s==5):
         map = inmap
         inmap = ''
-        if nest=True:
+        if (nest==True):
             ordering='RING' 
         else:
             ordering = 'NESTED'
-        nside = sqrt(len(hmap[*,0])/12L)
+        nside = sqrt(len(hmap[:,0])/12L)
         if (round(nside,1)!=nside) or ((nside%2)!=0):
             print ''
             print 'Not a standard Healpix map...'
@@ -52,7 +52,7 @@ def haperflux(inmap, freq, res_arcmin, lon, lat, aper_inner_radius, \
       
 
     npix = 12L*nside**2
-    ncolumn = len(map[0,*])
+    ncolumn = len(map[0,:])
 
 # set column number and test to make sure there is enough columns in
 # the file!
