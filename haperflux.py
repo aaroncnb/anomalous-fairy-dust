@@ -6,13 +6,13 @@ def planckcorr(freq):
     return (exp(x) - 1)**2/x**2/exp(x) 
 
 def haperflux(inmap, freq, res_arcmin, lon, lat, aper_inner_radius, \
-    aper_outer_radius1, aper_outer_radius2, units, fd, fd_err, fd_bg, \
-    column=column, dopol=dopol, nested=nested, noise_model=noise_model, \
-    centroid=centroid):
+    aper_outer_radius1, aper_outer_radius2, units, fd=0, fd_err=0, fd_bg=0, \
+    column=0, dopol=False, nested=False, noise_model=0, \
+    centroid=0):
 
 
     #check parameters
-    if len(sys.argvs) > 8:
+    if len(sys.argv) > 8:
         print ''
         print 'SYNTAX:-'
         print ''
@@ -23,7 +23,7 @@ def haperflux(inmap, freq, res_arcmin, lon, lat, aper_inner_radius, \
 
     #set parameters
     inmap = inmap
-    thisfreq = float(freq[0])
+    thisfreq = float(freq)
     lon = float(lon)
     lat = float(lat)
     aper_inner_radius  = float(aper_inner_radius)
@@ -43,15 +43,15 @@ def haperflux(inmap, freq, res_arcmin, lon, lat, aper_inner_radius, \
             ordering='RING' 
         else:
             ordering = 'NESTED'
-        nside = sqrt(len(hmap[:,0])/12L)
-        if (round(nside,1)!=nside) or ((nside%2)!=0):
-            print ''
-            print 'Not a standard Healpix map...'
-            print ''
-            exit()
+    nside = np.sqrt(len(hmap[:,0])/12)
+    if (round(nside,1)!=nside) or ((nside%2)!=0):
+        print ''
+        print 'Not a standard Healpix map...'
+        print ''
+        exit()
       
 
-    npix = 12L*nside**2
+    npix = 12*nside**2
     ncolumn = len(map[0,:])
 
 # set column number and test to make sure there is enough columns in
@@ -62,7 +62,7 @@ def haperflux(inmap, freq, res_arcmin, lon, lat, aper_inner_radius, \
     else:
         column=round(column,1)
         
-    if (((column+1) > ncolumn) and (dopol== 0):
+    if (((column+1) > ncolumn) and (dopol== 0)):
         print ''
         print 'Column number requested larger than the number of columns in the file!'
         print ''
@@ -83,7 +83,7 @@ def haperflux(inmap, freq, res_arcmin, lon, lat, aper_inner_radius, \
 
 #-----do the centroiding here
 
-    if (centroid=True):
+    if (centroid==True):
         print 'Doing Re-centroiding of coordinates'
     
 
@@ -106,7 +106,7 @@ def haperflux(inmap, freq, res_arcmin, lon, lat, aper_inner_radius, \
 
 
 # do not include pixels that are bad
-    good0 = hmap[innerpix,column].index(!=hp.UNSEEN)
+    good0 = np.where(hmap[innerpix,column] != hp.UNSEEN)
         
     #good0 = where(map[innerpix,column] NE !healpix.bad_value, ninnerpix, $
     #            complement=bad0, ncomplement=nbad0)
@@ -141,7 +141,7 @@ def haperflux(inmap, freq, res_arcmin, lon, lat, aper_inner_radius, \
         if (temp[0] < 0):
             outerpix = [outerpix,outerpix2[i]]
     
-    outerpix = outerpix[1:*]
+    outerpix = outerpix[1:]
     nouterpix = len(outerpix)
 
 # get conversion from to Jy/pix
@@ -154,10 +154,10 @@ def haperflux(inmap, freq, res_arcmin, lon, lat, aper_inner_radius, \
     if (units == 'mK') or (units == 'mK_RJ') or (units == 'mKRJ'):
         factor = 2.*1381.*(thisfreq*1.0e9)**2/(2.997e8)**2 * pix_area / 1.0e3
     
-    if (units == 'uK') or units EQ 'uK_RJ' OR units EQ 'uKRJ'):
+    if (units == 'uK') or (units == 'uK_RJ') or (units == 'uKRJ'):
         factor = 2.*1381.*(thisfreq*1.0e9)**2/(2.997e8)**2 * pix_area / 1.0e6
         
-    if (units == 'K_CMB') or units EQ 'KCMB'):
+    if (units == 'K_CMB') or (units == 'KCMB'):
         factor = 2.*1381.*(thisfreq*1.0e9)**2/(2.997e8)**2 * pix_area / planckcorr(thisfreq)
         
     if (units == 'mK_CMB') or (units == 'mKCMB'):
@@ -226,7 +226,7 @@ def haperflux(inmap, freq, res_arcmin, lon, lat, aper_inner_radius, \
         
 
 # if dopol is set, then store the Q estimate the first time only
-         if(dopol == 1) and (i == 1):
+        if(dopol == 1) and (i == 1):
             fd1 = fd
             fd_err1 = fd_err
             fd_bg1 = fd_bg
@@ -241,6 +241,6 @@ def haperflux(inmap, freq, res_arcmin, lon, lat, aper_inner_radius, \
     
 
 #SKIP1: 
-    return
+    return fd, fd_err, fd_bg
 
 
