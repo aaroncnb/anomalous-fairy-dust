@@ -33,16 +33,19 @@ def haperflux(inmap, freq, res_arcmin, lon, lat, aper_inner_radius, \
     # read in data
     s = np.size(inmap)
 
-    if (s == 7):
-        hmap,hhead = hp.read_map(inmap, hdu=1) #Check if Ring or Nested is needed
-
-    if (s==4) or (s==5):
-        map = inmap
-        inmap = ''
-        if (nest==True):
-            ordering='RING' 
-        else:
-            ordering = 'NESTED'
+    if (s == 1):
+        hmap,hhead = hp.read_map(inmap, hdu=1,h=True) #Check if Ring or Nested is needed
+        print np.size(hmap)
+    
+    if (s>1):
+        hmap = inmap
+        inmap =  ''
+    
+    if (nest==True):
+        ordering='RING' 
+    else:
+        ordering ='NESTED'
+    
     nside = np.sqrt(len(hmap[:,0])/12)
     if (round(nside,1)!=nside) or ((nside%2)!=0):
         print ''
