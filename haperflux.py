@@ -34,19 +34,21 @@ def haperflux(inmap, freq, res_arcmin, lon, lat, aper_inner_radius, \
     s = np.size(inmap)
 
     if (s == 1):
-        hmap,hhead = hp.read_map(inmap, hdu=1,h=True) #Check if Ring or Nested is needed
+        
+        hmap,hhead = hp.read_map(inmap, hdu=1,h=True, nest=nested) #Check if Ring or Nested is needed
+        #http://healpy.readthedocs.org/en/latest/generated/healpy.fitsfunc.read_map.html
         print np.size(hmap)
     
     if (s>1):
         hmap = inmap
         inmap =  ''
     
-    if (nest==True):
+    if (nested==False):
         ordering='RING' 
     else:
         ordering ='NESTED'
     
-    nside = np.sqrt(len(hmap[:,0])/12)
+    nside = np.sqrt(len(hmap)/12)
     if (round(nside,1)!=nside) or ((nside%2)!=0):
         print ''
         print 'Not a standard Healpix map...'
@@ -55,11 +57,11 @@ def haperflux(inmap, freq, res_arcmin, lon, lat, aper_inner_radius, \
       
 
     npix = 12*nside**2
-    ncolumn = len(map[0,:])
+    ncolumn = len(hmap)
 
 # set column number and test to make sure there is enough columns in
 # the file!
-    if (field == 0):
+    if (column == 0):
         column = 0 
     
     else:
@@ -95,29 +97,36 @@ def haperflux(inmap, freq, res_arcmin, lon, lat, aper_inner_radius, \
     theta = np.pi/2.-lat*np.pi/180.
     vec0=hp.ang2vec(theta, phi)
         
-    if (ordering == 'NESTED'):
         # According to the HP git repository- hp.query_disc is faster in RING
-        innerpix, ninnerpix = hp.query_disc(nside=nside, vec=vec0, radius=aper_inner_radius/60, nest=True)
-        #query_disc, nside, vec0, aper_inner_radius/60., innerpix, ninnerpix, /deg, /nest
-        #query_disc, nside, vec0, aper_outer_radius1/60., outerpix1, nouterpix1, /deg, /nest 
-        #query_disc, nside, vec0, aper_outer_radius2/60., outerpix2, nouterpix2, /deg, /nest 
-    #else:
-        #query_disc, nside, vec0, aper_inner_radius/60., innerpix, ninnerpix, /deg
-        #query_disc, nside, vec0, aper_outer_radius1/60., outerpix1, nouterpix1, /deg 
-        #query_disc, nside, vec0, aper_outer_radius2/60., outerpix2, nouterpix2, /deg 
+        
+    ## Get the pixels within the innermost (source) aperture
+    innerpix = hp.query_disc(nside=nside, vec=vec0, radius=aper_inner_radius/60, nest=nested)
+    ninnerpix = len(innerpix) #since the HEALPY version of query_disc doesn't return the number of pixels
+        
+    ## Get the pixels within the inner-ring of the background annulus
+    outerpix1 = hp.query_disc(nside=nside, vec=vec0, radius=aper_outer_radius1/60., nest=nested)
+    nouterpix1 = len(outerpix1)
+        
+    ## Get the pixels within the outer-ring of the background annulus
+    outerpix2 = hp.query_disc(nside=nside, vec=vec0, radius=aper_outer_radius2/60., nest=nested)
+    nouterpix2 = len(outerpix2)
+        
     
 
 
 # do not include pixels that are bad
-    good0 = np.where(hmap[innerpix,column] != hp.UNSEEN)
-        
-    #good0 = where(map[innerpix,column] NE !healpix.bad_value, ninnerpix, $
-    #            complement=bad0, ncomplement=nbad0)
-    #good1 = where(map[outerpix1,column] NE !healpix.bad_value, nouterpix1, $
-    #            complement=bad1, ncomplement=nbad1)
-    #good2 = where(map[outerpix2,column] NE !healpix.bad_value, nouterpix2, $
-    #            complement=bad2, ncomplement=nbad2)
+    hmap_inner = hmap[innerpix]
+    
+    hmap_inner_masked = np.where(hmap_inner != hp.UNSEEN)
+    
+    good0 = hmap_inner[hmap_inner_masked]
 
+    
+    
+    good1 = np.where(hmap[outerpix1] != hp.UNSEEN)
+
+    good2 = np.where(hmap[outerpix2] != hp.UNSEEN)
+    
     if (ninnerpix == 0) or (nouterpix1 == 0) or (nouterpix2 == 0):
         print ''
         print '***No good pixels inside aperture!***'
@@ -125,22 +134,28 @@ def haperflux(inmap, freq, res_arcmin, lon, lat, aper_inner_radius, \
         fd = np.nan
         fd_err = np.nan
         exit()
+    
         #GOTO, SKIP1 - I think "GOTO" was used here because the IDL code's authors wanted to exit the code, 
         #     but keep the intermediate values    
 
-    innerpix = innerpix[good0]
+    innerpix = good0
+    
     outerpix1 = outerpix1[good1]
-    outerpix2 = outerpix2[good2]
+    outerpix2 = map(tuple,outerpix2[good2])
 
  
 
 # find pixels in the annulus (between outerradius1 and outeradius2) 
-    outerpix_all = [outerpix1,outerpix2]
-    outerpix_all = outerpix_all[sort(outerpix_all)]
+    outerpix_all = np.column_stack(outerpix1,outerpix2)
+    
+    #In IDL you can do this: outerpix_all = [outerpix1,outerpix2] , but numpy doesn't understand it?
+    
+    outerpix_all = np.sort(outerpix_all)
     outerpix = -1L
         
-    for i in range(0L, nouterpix2):
-        temp = outerpix1.index(outerpix2[i])
+    for i in range(0, nouterpix2):
+        
+        temp =  outerpix1[outerpix2[i]]
         if (temp[0] < 0):
             outerpix = [outerpix,outerpix2[i]]
     
@@ -191,13 +206,13 @@ def haperflux(inmap, freq, res_arcmin, lon, lat, aper_inner_radius, \
             column=i
 
 # Get pixel values in inner radius, converting to Jy/pix
-        fd_jypix_inner = map[innerpix,column] * factor
+        fd_jypix_inner = hmap[innerpix] * factor
 
 # sum up integrated flux in inner
         fd_jy_inner = total(fd_jypix_inner)
 
 # same for outer radius but take a robust estimate and scale by area
-        fd_jy_outer = median(map[outerpix,column]) * factor
+        fd_jy_outer = median(hmap[outerpix]) * factor
 
 # subtract background
         fd_bg = fd_jy_outer
@@ -217,7 +232,7 @@ def haperflux(inmap, freq, res_arcmin, lon, lat, aper_inner_radius, \
                       (1.13*(float(res_arcmin)/60. *np.pi/180.)**2)
             Npoints_outer = (pix_area*nouterpix) / \
                       (1.13*(float(res_arcmin)/60. *np.pi/180.)**2)
-            fd_err = stddev(map[outerpix,column]) * factor * ninnerpix / sqrt(Npoints)
+            fd_err = stddev(hmap[outerpix]) * factor * ninnerpix / sqrt(Npoints)
       
 
  # works exactly for white uncorrelated noise only!
@@ -225,7 +240,7 @@ def haperflux(inmap, freq, res_arcmin, lon, lat, aper_inner_radius, \
             k = np.pi/2.
 
             fd_err = factor * sqrt(float(ninnerpix) + \
-                (k * float(ninnerpix)**2/nouterpix)) * robust_sigma(map[outerpix,column])
+                (k * float(ninnerpix)**2/nouterpix)) * robust_sigma(hmap[outerpix])
         
 
 # if dopol is set, then store the Q estimate the first time only
