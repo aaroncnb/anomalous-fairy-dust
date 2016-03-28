@@ -68,12 +68,15 @@ def haperflux(inmap, freq, res_arcmin, lon, lat, aper_inner_radius, \
     s = np.size(inmap)
 
     if (s == 1):
+        print "Filename given as input..."
+        print "Reading HEALPix fits file into a numpy array"
         
         hmap,hhead = hp.read_map(inmap, hdu=1,h=True, nest=nested) #Check if Ring or Nested is needed
         #http://healpy.readthedocs.org/en/latest/generated/healpy.fitsfunc.read_map.html
         print np.size(hmap)
     
     if (s>1):
+        print "Numpy HEALPix array given as input, proceeding..."
         hmap = inmap
         inmap =  ''
     
@@ -132,11 +135,13 @@ def haperflux(inmap, freq, res_arcmin, lon, lat, aper_inner_radius, \
     vec0=hp.ang2vec(theta, phi)
         
         # According to the HP git repository- hp.query_disc is faster in RING
-        
+     
+    print "Getting the innermost (source) pixel numbers"
     ## Get the pixels within the innermost (source) aperture
     innerpix = hp.query_disc(nside=nside, vec=vec0, radius=aper_inner_radius, nest=nested)
     #ninnerpix = len(innerpix) #since the HEALPY version of query_disc doesn't return the number of pixels
-        
+    
+    print "Getting the background ring pixel numbers"
     ## Get the pixels within the inner-ring of the background annulus
     outerpix1 = hp.query_disc(nside=nside, vec=vec0, radius=aper_outer_radius1, nest=nested)
     #nouterpix1 = len(outerpix1)
@@ -151,7 +156,10 @@ def haperflux(inmap, freq, res_arcmin, lon, lat, aper_inner_radius, \
 # Identify and remove the bad pixels
 # In this scheme, all of the bad pixels should have been labeled with HP.UNSEEN in the HEALPix maps
     
+    print "Checking for bad pixels"
     bad0 = np.where(hmap[innerpix] == hp.UNSEEN)
+    print "Printing bad0"
+    print bad0
     innerpix_masked = np.delete(innerpix,bad0)
     ninnerpix = len(innerpix_masked)
     
@@ -162,6 +170,8 @@ def haperflux(inmap, freq, res_arcmin, lon, lat, aper_inner_radius, \
     bad2 = np.where(hmap[outerpix2] == hp.UNSEEN)
     outerpix2_masked = np.delete(outerpix2,bad2)
     nouterpix2 = len(outerpix2_masked)
+    
+    print str(nouterpix2)+"bad pixels found."
     
     if (ninnerpix == 0) or (nouterpix1 == 0) or (nouterpix2 == 0):
         print ''
@@ -180,6 +190,9 @@ def haperflux(inmap, freq, res_arcmin, lon, lat, aper_inner_radius, \
 
     bgpix = np.delete(outerpix2, outerpix1)
     print "Common Elements Removed"
+    print str(len(bgpix))+" background pixels used."
+    print "Printing background pixel list:"
+    print bgpix
     
     nbgpix = len(bgpix)
 
@@ -227,13 +240,18 @@ def haperflux(inmap, freq, res_arcmin, lon, lat, aper_inner_radius, \
             column=i
 
         # Get pixel values in inner radius, converting to Jy/pix
+        
         fd_jypix_inner = hmap[innerpix] * factor
-
+        
         # sum up integrated flux in inner
+        print "Total flux of the source aperture:"
         fd_jy_inner = total(fd_jypix_inner)
+        print str(fd_jr_inner)+"Jy"
 
         # same for outer radius but take a robust estimate and scale by area
+        print "Robust (median) estimate of the background:"
         fd_jy_outer = median(hmap[bgpix]) * factor
+        print str(fd_jr_outer)+"Jy"
 
         # subtract background
         fd_bg = fd_jy_outer
