@@ -1,3 +1,36 @@
+import numpy as np
+import healpy as hp
+import sys
+
+
+
+#http://stackoverflow.com/questions/14275986/removing-common-elements-in-two-lists
+# Here is a function to remove the "common" pixels of the innter and outer rings of the background annulus
+# The point is that the background-ring pixels we want, are the ones that /not/ contained by both outer rings.
+# If we were calculating the rings's area, we'd subtract the innter ring area from the outer. It's essentially the same logic here
+# I found an example function on stackoverflow, by "user1632861 "
+# It's intended for lists, rather than numpy arrays, but I think it should work
+
+def removeCommonElements(outerpix1, outerpix2):
+    for pix in outerpix2[:]:
+        if pix in outerpix1:
+            outerpix2.remove(pix)
+            outerpix1.remove(pix)
+
+def removeCommonElementsNumpy(outerpix1, outerpix2):
+    outpix1 = outerpix1.copy()
+    outpix2 = outerpix2.copy()
+    for pix in outerpix2[:]:
+        if pix in outerpix1:
+            np.delete(outpix1,pix)
+            np.delete(outpix2,pix)
+    return outpix1, outpix2
+
+def deleteCommon(outerpix1,outerpix2):
+    outerpix = np.delete(outerpix2, outerpix1)
+    return outerpix
+
+
 def planckcorr(freq):
     h = 6.62606957E-34
     k = 1.3806488E-23 
@@ -11,6 +44,7 @@ def haperflux(inmap, freq, res_arcmin, lon, lat, aper_inner_radius, \
     centroid=0):
 
 
+    
     #check parameters
     if len(sys.argv) > 8:
         print ''
@@ -100,32 +134,34 @@ def haperflux(inmap, freq, res_arcmin, lon, lat, aper_inner_radius, \
         # According to the HP git repository- hp.query_disc is faster in RING
         
     ## Get the pixels within the innermost (source) aperture
-    innerpix = hp.query_disc(nside=nside, vec=vec0, radius=aper_inner_radius/60, nest=nested)
-    ninnerpix = len(innerpix) #since the HEALPY version of query_disc doesn't return the number of pixels
+    innerpix = hp.query_disc(nside=nside, vec=vec0, radius=aper_inner_radius, nest=nested)
+    #ninnerpix = len(innerpix) #since the HEALPY version of query_disc doesn't return the number of pixels
         
     ## Get the pixels within the inner-ring of the background annulus
-    outerpix1 = hp.query_disc(nside=nside, vec=vec0, radius=aper_outer_radius1/60., nest=nested)
-    nouterpix1 = len(outerpix1)
+    outerpix1 = hp.query_disc(nside=nside, vec=vec0, radius=aper_outer_radius1, nest=nested)
+    #nouterpix1 = len(outerpix1)
         
     ## Get the pixels within the outer-ring of the background annulus
-    outerpix2 = hp.query_disc(nside=nside, vec=vec0, radius=aper_outer_radius2/60., nest=nested)
-    nouterpix2 = len(outerpix2)
+    outerpix2 = hp.query_disc(nside=nside, vec=vec0, radius=aper_outer_radius2, nest=nested)
+    #nouterpix2 = len(outerpix2)
         
     
 
 
-# do not include pixels that are bad
-    hmap_inner = hmap[innerpix]
+# Identify and remove the bad pixels
+# In this scheme, all of the bad pixels should have been labeled with HP.UNSEEN in the HEALPix maps
     
-    hmap_inner_masked = np.where(hmap_inner != hp.UNSEEN)
+    bad0 = np.where(hmap[innerpix] == hp.UNSEEN)
+    innerpix_masked = np.delete(innerpix,bad0)
+    ninnerpix = len(innerpix_masked)
     
-    good0 = hmap_inner[hmap_inner_masked]
-
+    bad1 = np.where(hmap[outerpix1] == hp.UNSEEN)
+    outerpix1_masked = np.delete(outerpix1,bad1)
+    nouterpix1 = len(outerpix1_masked)
     
-    
-    good1 = np.where(hmap[outerpix1] != hp.UNSEEN)
-
-    good2 = np.where(hmap[outerpix2] != hp.UNSEEN)
+    bad2 = np.where(hmap[outerpix2] == hp.UNSEEN)
+    outerpix2_masked = np.delete(outerpix2,bad2)
+    nouterpix2 = len(outerpix2_masked)
     
     if (ninnerpix == 0) or (nouterpix1 == 0) or (nouterpix2 == 0):
         print ''
@@ -134,35 +170,20 @@ def haperflux(inmap, freq, res_arcmin, lon, lat, aper_inner_radius, \
         fd = np.nan
         fd_err = np.nan
         exit()
-    
-        #GOTO, SKIP1 - I think "GOTO" was used here because the IDL code's authors wanted to exit the code, 
-        #     but keep the intermediate values    
-
-    innerpix = good0
-    
-    outerpix1 = outerpix1[good1]
-    outerpix2 = map(tuple,outerpix2[good2])
-
- 
-
-# find pixels in the annulus (between outerradius1 and outeradius2) 
-    outerpix_all = np.column_stack(outerpix1,outerpix2)
-    
-    #In IDL you can do this: outerpix_all = [outerpix1,outerpix2] , but numpy doesn't understand it?
-    
-    outerpix_all = np.sort(outerpix_all)
-    outerpix = -1L
         
-    for i in range(0, nouterpix2):
-        
-        temp =  outerpix1[outerpix2[i]]
-        if (temp[0] < 0):
-            outerpix = [outerpix,outerpix2[i]]
-    
-    outerpix = outerpix[1:]
-    nouterpix = len(outerpix)
+    innerpix = innerpix_masked
+    outerpix1 = outerpix1_masked
+    outerpix2 = outerpix2_masked
 
-# get conversion from to Jy/pix
+    # find pixels in the annulus (between outerradius1 and outeradius2) 
+    # In other words, remove pixels of Outer Radius 2 that are enclosed within Outer Radius 1
+
+    bgpix = np.delete(outerpix2, outerpix1)
+    print "Common Elements Removed"
+    
+    nbgpix = len(bgpix)
+
+    # get conversion from to Jy/pix
     pix_area = 4.*np.pi / npix
     factor = 1.0
 
@@ -205,45 +226,42 @@ def haperflux(inmap, freq, res_arcmin, lon, lat, aper_inner_radius, \
         if (dopol == 1):
             column=i
 
-# Get pixel values in inner radius, converting to Jy/pix
+        # Get pixel values in inner radius, converting to Jy/pix
         fd_jypix_inner = hmap[innerpix] * factor
 
-# sum up integrated flux in inner
+        # sum up integrated flux in inner
         fd_jy_inner = total(fd_jypix_inner)
 
-# same for outer radius but take a robust estimate and scale by area
-        fd_jy_outer = median(hmap[outerpix]) * factor
+        # same for outer radius but take a robust estimate and scale by area
+        fd_jy_outer = median(hmap[bgpix]) * factor
 
-# subtract background
+        # subtract background
         fd_bg = fd_jy_outer
         fd = fd_jy_inner - fd_bg*float(ninnerpix)
 
 
-#estimate error based on robust sigma of the background annulus
-        if (noise_model == 0):
-            noise_model = 0
-        noise_model = 1
-
-# new version (2-Dec-2010) that has been tested with simulations for
-# Planck early paper and seems to be reasonable for many applications
+        #estimate error based on robust sigma of the background annulus
+        # new version (2-Dec-2010) that has been tested with simulations for
+        # Planck early paper and seems to be reasonable for many applications
 
         if (noise_model == 0): 
             Npoints = (pix_area*ninnerpix) / \
                       (1.13*(float(res_arcmin)/60. *np.pi/180.)**2)
-            Npoints_outer = (pix_area*nouterpix) / \
+            Npoints_outer = (pix_area*nbgpix) / \
                       (1.13*(float(res_arcmin)/60. *np.pi/180.)**2)
-            fd_err = stddev(hmap[outerpix]) * factor * ninnerpix / sqrt(Npoints)
+            fd_err = stddev(hmap[bgpix]) * factor * ninnerpix / sqrt(Npoints)
       
 
- # works exactly for white uncorrelated noise only!
+         
+        # works exactly for white uncorrelated noise only!
         if (noise_model == 1):
             k = np.pi/2.
 
             fd_err = factor * sqrt(float(ninnerpix) + \
-                (k * float(ninnerpix)**2/nouterpix)) * robust_sigma(hmap[outerpix])
+                (k * float(ninnerpix)**2/nbgpix)) * robust_sigma(hmap[bgpix])
         
 
-# if dopol is set, then store the Q estimate the first time only
+        # if dopol is set, then store the Q estimate the first time only
         if(dopol == 1) and (i == 1):
             fd1 = fd
             fd_err1 = fd_err
@@ -258,7 +276,5 @@ def haperflux(inmap, freq, res_arcmin, lon, lat, aper_inner_radius, \
         fd_bg = sqrt(fd_bg1**2 + fd_bg**2)
     
 
-#SKIP1: 
     return fd, fd_err, fd_bg
-
 
