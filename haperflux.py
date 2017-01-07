@@ -328,29 +328,31 @@ def haperflux(inmap, freq, lon, lat, res_arcmin, aper_inner_radius, aper_outer_r
     if (units == 'K') or (units == 'K_RJ') or (units == 'KRJ'):
         factor = 2.*1381.*(thisfreq*1.0e9)**2/(2.997e8)**2 * pix_area
     
-    if (units == 'mK') or (units == 'mK_RJ') or (units == 'mKRJ'):
+    elif (units == 'mK') or (units == 'mK_RJ') or (units == 'mKRJ'):
         factor = 2.*1381.*(thisfreq*1.0e9)**2/(2.997e8)**2 * pix_area / 1.0e3
     
-    if (units == 'uK') or (units == 'uK_RJ') or (units == 'uKRJ'):
+    elif (units == 'uK') or (units == 'uK_RJ') or (units == 'uKRJ'):
         factor = 2.*1381.*(thisfreq*1.0e9)**2/(2.997e8)**2 * pix_area / 1.0e6
         
-    if (units == 'K_CMB') or (units == 'KCMB'):
+    elif (units == 'K_CMB') or (units == 'KCMB'):
         factor = 2.*1381.*(thisfreq*1.0e9)**2/(2.997e8)**2 * pix_area / planckcorr(thisfreq)
         
-    if (units == 'mK_CMB') or (units == 'mKCMB'):
+    elif (units == 'mK_CMB') or (units == 'mKCMB'):
         factor = 2.*1381.*(thisfreq*1.0e9)**2/(2.997e8)**2 * pix_area / 1.0e3 / planckcorr(thisfreq)
         
-    if (units == 'uK_CMB') or (units == 'uKCMB'):
+    elif (units == 'uK_CMB') or (units == 'uKCMB'):
         factor = 2.*1381.*(thisfreq*1.0e9)**2/(2.997e8)**2 * pix_area / 1.0e6 / planckcorr(thisfreq)
         
-    if (units == 'MJy/sr') or (units == 'MJY/SR') or (units == 'MjySr'):
+    elif (units == 'MJy/sr') or (units == 'MJY/SR') or (units == 'MjySr'):
         factor = pix_area * 1.0e6
         
-    if (units == 'Jy/pixel') or (units == 'JY/PIXEL') or (units == 'JY/PIX') or (units == 'JyPix'):
+    elif (units == 'Jy/pixel') or (units == 'JY/PIXEL') or (units == 'JY/PIX') or (units == 'JyPix'):
          factor = 1.0
             
-    if (units == 'average') or (units == 'avg') or (units == 'Average') or (units == 'AVG'):
+    elif (units == 'average') or (units == 'avg') or (units == 'Average') or (units == 'AVG'):
          factor = 1.0 / float(ninnerpix)
+    else:
+        print "Invalid units specified in FITS header! "
 
 # override columns if /dopol keyword is set
      
